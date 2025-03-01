@@ -1,7 +1,24 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* index.css */
 
+/* Global styles */
 body {
-  @apply bg-gray-100 text-gray-900;
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fa; /* Light gray background */
+  color: #333; /* Dark text */
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom button style */
+.btn-custom {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-custom:hover {
+  background-color: #0056b3;
 }
