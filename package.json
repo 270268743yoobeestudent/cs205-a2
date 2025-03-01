@@ -25,6 +25,7 @@
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.14.0",
-    "mongoose": "^8.11.0"
+    "mongoose": "^8.11.0",
+    "react-router-dom": "^7.2.0"
   }
 }
