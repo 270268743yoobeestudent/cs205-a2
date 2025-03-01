@@ -1,11 +1,8 @@
-import React from "react";
-
-const App = () => {
+export default function App() {
   return (
-    <div className="text-center text-3xl font-bold text-blue-600 mt-10">
-      ✅ Tailwind is working! 🚀
+    <div className="container mt-5">
+      <h1 className="text-primary">Hello, Bootstrap!</h1>
+      <button className="btn btn-success">Click Me</button>
     </div>
   );
-};
-
-export default App;
+}
