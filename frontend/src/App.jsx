@@ -1,4 +1,21 @@
+import { useEffect } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
+import "bootstrap-icons/font/bootstrap-icons.min.css";
+
 export default function App() {
+  useEffect(() => {
+    // Adding Smooth Scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute("href")).scrollIntoView({
+          behavior: "smooth",
+        });
+      });
+    });
+  }, []);
+
   return (
     <div className="container mt-5">
       {/* Header Section */}
@@ -8,17 +25,18 @@ export default function App() {
       </header>
 
       {/* Hero Section */}
-      <div className="row align-items-center">
+      <div className="row align-items-center bg-light p-4 rounded shadow">
         <div className="col-md-6">
           <h2 className="text-success">Why Cyber Security Learning?</h2>
           <p>Empower your staff and reduce your surface attack area.</p>
-          <button className="btn btn-warning btn-lg">Get Started</button>
+          <button className="btn btn-warning btn-lg shadow-lg">Get Started</button>
         </div>
         <div className="col-md-6 text-center">
           <img
-            src="https://via.placeholder.com/400"
-            alt="Illustration"
-            className="img-fluid rounded"
+            src="/images/security.png"
+            alt="Cyber Security Training"
+            className="img-fluid rounded shadow-sm"
+            loading="lazy"
           />
         </div>
       </div>
@@ -40,6 +58,13 @@ export default function App() {
           <h3>Secure</h3>
           <p>Your data is always protected with high-end encryption.</p>
         </div>
+      </div>
+
+      {/* Call to Action */}
+      <div className="text-center my-5">
+        <a href="#learn-more" className="btn btn-primary btn-lg">
+          Learn More <i className="bi bi-arrow-down"></i>
+        </a>
       </div>
 
       {/* Footer */}
