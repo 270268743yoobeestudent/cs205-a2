@@ -1,38 +1,52 @@
-// controllers/TrainingModuleController.js
+const Module = require("../models/TrainingModule");
+const Report = require("../models/Report");
 
-const TrainingModule = require('../models/TrainingModule');
-
-// Create a new training module
-exports.createModule = async (req, res) => {
+// Controller for completing a training module for an employee
+exports.completeModule = async (req, res) => {
   try {
-    const { title, content } = req.body;
-    const newModule = new TrainingModule({ title, content });
-    await newModule.save();
-    res.status(201).json({ success: true, data: newModule });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+    const { moduleId, employeeId } = req.body;
 
-// Get all training modules
-exports.getModules = async (req, res) => {
-  try {
-    const modules = await TrainingModule.find();
-    res.status(200).json({ success: true, data: modules });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// Get a single training module by ID
-exports.getModuleById = async (req, res) => {
-  try {
-    const module = await TrainingModule.findById(req.params.id);
-    if (!module) {
-      return res.status(404).json({ success: false, message: 'Module not found' });
+    // Validate the required fields
+    if (!moduleId || !employeeId) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
-    res.status(200).json({ success: true, data: module });
+
+    // Find or create a report for the employee
+    let report = await Report.findOne({ employeeId });
+
+    if (!report) {
+      // If no report exists for the employee, create one
+      report = new Report({
+        employeeId,
+        completedModules: [],
+        quizScores: [],
+        improvementAreas: [],
+      });
+    }
+
+    // Prevent adding duplicate module completions
+    if (!report.completedModules.includes(moduleId)) {
+      report.completedModules.push(moduleId);
+    }
+
+    // Update the last updated timestamp
+    report.lastUpdated = Date.now();
+
+    // Save the updated report
+    await report.save();
+
+    // Send a success response with the updated report
+    res.status(200).json({
+      message: "Module completed successfully",
+      report,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    // Log the error and send an appropriate response
+    console.error("Error completing module:", error);
+
+    res.status(500).json({
+      error: "Server error",
+      details: error.message,  // Provide error details for easier debugging
+    });
   }
 };

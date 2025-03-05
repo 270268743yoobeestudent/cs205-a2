@@ -1,39 +1,45 @@
-// server.js
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const dotenv = require("dotenv");
 
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const connectDB = require('./config/db');
+const authRoutes = require("./routes/AuthRoutes"); // Add this line to import authRoutes
+const trainingRoutes = require("./routes/TrainingModuleRoutes");
+const quizRoutes = require("./routes/QuizRoutes");
+const reportRoutes = require("./routes/ReportRoutes");
+const adminRoutes = require("./routes/AdminRoutes"); // New Admin Routes
 
-// Load environment variables
 dotenv.config();
 
-// Initialise Express
 const app = express();
 
 // Middleware
-app.use(express.json()); // Parse JSON bodies
-app.use(cors());         // Enable CORS
+app.use(express.json());
+app.use(cors());
 
-// Connect to MongoDB
-connectDB();
+// Database Connection
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB Connected"))
+  .catch((error) => console.log("MongoDB Connection Error:", error));
 
-// Base route for testing
-app.get('/', (req, res) => {
-  res.send('Welcome to the cs205-a2 backend API!');
+// Routes
+app.use("/auth", authRoutes); // Add this route for authentication
+app.use("/training", trainingRoutes);
+app.use("/quizzes", quizRoutes);
+app.use("/reports", reportRoutes);
+app.use("/admin", adminRoutes); // New Admin Route for Reports
+
+// Default Route
+app.get("/", (req, res) => {
+  res.send("Cybersecurity Training API is running...");
 });
 
-// Import and use the training module routes
-const trainingModuleRoutes = require('./routes/TrainingModuleRoutes');
-app.use('/api/modules', trainingModuleRoutes);
-
-// Import and use the quiz routes
-const quizRoutes = require('./routes/QuizRoutes');
-app.use('/api/quizzes', quizRoutes);
-
-// Define the port
+// Start Server
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
