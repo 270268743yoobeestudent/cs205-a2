@@ -1,6 +1,5 @@
-// models/User.js
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const UserSchema = new mongoose.Schema({
   username: {
@@ -14,20 +13,29 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'user'], // Example roles
-    default: 'user',
+    enum: ["admin", "user"], // Example roles
+    default: "user",
   },
+  quizResults: [
+    {
+      quiz: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz" },
+      score: Number,
+      totalQuestions: Number,
+      submittedAt: { type: Date, default: Date.now },
+    },
+  ],
 });
 
-// Before saving, hash the password
-UserSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+// Hash the password before saving
+UserSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-UserSchema.methods.matchPassword = async function(password) {
+// Compare entered password with stored hash
+UserSchema.methods.matchPassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-module.exports = mongoose.model('User', UserSchema);
+module.exports = mongoose.model("User", UserSchema);

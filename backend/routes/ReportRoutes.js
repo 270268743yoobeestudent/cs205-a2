@@ -1,56 +1,24 @@
 const express = require("express");
-const Report = require("../models/Report");
 const router = express.Router();
+const ReportController = require("../controllers/ReportController");
+const { authenticateToken, isAdmin } = require("../middleware/authMiddleware");
 
-// Get all reports (Admin Only)
-router.get("/", async (req, res) => {
-  try {
-    // Populate employee details, completed modules, and specific quiz information (only quiz title for efficiency)
-    const reports = await Report.find().populate("employeeId", "name email")
-                                    .populate("completedModules", "title")
-                                    .populate({
-                                      path: "quizScores.quizId",
-                                      select: "title createdAt"
-                                    });
-    res.json(reports);
-  } catch (err) {
-    console.error("Error fetching all reports:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
+// Middleware to authenticate the token and check if the user is an admin
+router.use(authenticateToken, isAdmin);
 
-// Get a specific employee's report (Admin Only)
-router.get("/:employeeId", async (req, res) => {
-  try {
-    const report = await Report.findOne({ employeeId: req.params.employeeId })
-      .populate("employeeId", "name email")
-      .populate("completedModules", "title")
-      .populate({
-        path: "quizScores.quizId",
-        select: "title createdAt"
-      });
+// Route to get all reports (Admin Only)
+router.get("/", ReportController.getAllReports);
 
-    if (!report) return res.status(404).json({ message: "Report not found" });
+// Route to get a specific employee's report (Admin Only)
+router.get("/:employeeId", ReportController.getEmployeeReport);
 
-    res.json(report);
-  } catch (err) {
-    console.error(`Error fetching report for employee ${req.params.employeeId}:`, err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
+// Route to get filtered reports (e.g., reports with completed modules)
+router.get("/filter/completed", ReportController.getFilteredReports);
 
-// Get reports filtered by completion status (Admin Only)
-router.get("/filter/completed", async (req, res) => {
-  try {
-    const reports = await Report.find({ completedModules: { $ne: [] } })
-                                .populate("employeeId", "name email")
-                                .populate("completedModules", "title");
+// Route to update an employee's report (e.g., add quiz scores)
+router.put("/:employeeId", ReportController.updateEmployeeReport);
 
-    res.json(reports);
-  } catch (err) {
-    console.error("Error fetching filtered reports:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
+// Route to delete an employee's report
+router.delete("/:employeeId", ReportController.deleteEmployeeReport);
 
 module.exports = router;

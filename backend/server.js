@@ -10,6 +10,7 @@ const reportRoutes = require("./routes/ReportRoutes");
 const adminRoutes = require("./routes/AdminRoutes"); // New Admin Routes
 
 dotenv.config();
+console.log("JWT_SECRET: ", process.env.JWT_SECRET); // Remove in production
 
 const app = express();
 

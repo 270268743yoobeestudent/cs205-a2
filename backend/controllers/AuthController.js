@@ -1,5 +1,3 @@
-// controllers/AuthController.js
-
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User'); // Adjust path to your User model
@@ -31,7 +29,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// Controller for register
+// Controller for user registration
 exports.register = async (req, res) => {
   const { email, password, name } = req.body;
 

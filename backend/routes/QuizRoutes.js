@@ -1,16 +1,18 @@
-// routes/QuizRoutes.js
-
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const QuizController = require('../controllers/QuizController');
+const QuizController = require("../controllers/QuizController");
+const { authenticateToken, isAdmin } = require("../middleware/authMiddleware");
 
-// Route to create a new quiz
-router.post('/', QuizController.createQuiz);
+// Admin only: Create a new quiz (requires authentication and admin role)
+router.post("/", authenticateToken, isAdmin, QuizController.createQuiz);
 
-// Route to retrieve all quizzes
-router.get('/', QuizController.getQuizzes);
+// Public route: Retrieve all quizzes
+router.get("/", QuizController.getQuizzes);
 
-// Route to retrieve a single quiz by its ID
-router.get('/:id', QuizController.getQuizById);
+// Public route: Retrieve a single quiz by its ID
+router.get("/:id", QuizController.getQuizById);
+
+// Protected route: Submit quiz answers and get a score (requires authentication)
+router.post("/:id/submit", authenticateToken, QuizController.submitQuiz);
 
 module.exports = router;

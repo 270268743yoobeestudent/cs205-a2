@@ -1,37 +1,35 @@
 const mongoose = require("mongoose");
 
 const ReportSchema = new mongoose.Schema({
-  // Reference to the employee (User model)
   employeeId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: [true, "Employee ID is required"],  // Descriptive error message
+    required: [true, "Employee ID is required"],
   },
 
-  // Array of modules the employee has completed
   completedModules: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Module",
-      required: [true, "Completed modules are required"],  // Ensures modules are required
+      required: [true, "Completed modules are required"],
+      unique: true,  // Ensure module uniqueness
     },
   ],
 
-  // Array of quiz scores with details for each quiz taken
   quizScores: [
     {
       quizId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Quiz",
-        required: [true, "Quiz ID is required"],  // Descriptive error message
+        required: [true, "Quiz ID is required"],
       },
       score: {
         type: Number,
-        required: [true, "Quiz score is required"],  // Ensures the score is required
+        required: [true, "Quiz score is required"],
       },
       totalQuestions: {
         type: Number,
-        required: [true, "Total questions are required"],  // Ensures total questions are recorded
+        required: [true, "Total questions are required"],
       },
       dateTaken: {
         type: Date,
@@ -40,18 +38,19 @@ const ReportSchema = new mongoose.Schema({
     },
   ],
 
-  // List of weak areas identified based on quiz scores
   improvementAreas: {
     type: [String],
-    default: [],  // Default as empty array
+    default: [],
   },
 
-  // Last updated timestamp
   lastUpdated: {
     type: Date,
     default: Date.now,
   },
 });
 
-// Create and export the model
+// Indexes for performance optimization (optional)
+ReportSchema.index({ employeeId: 1 });
+ReportSchema.index({ "quizScores.quizId": 1 });
+
 module.exports = mongoose.model("Report", ReportSchema);
