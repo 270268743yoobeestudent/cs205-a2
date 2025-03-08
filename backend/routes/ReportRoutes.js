@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const ReportController = require("../controllers/ReportController");
-const { authenticateToken, isAdmin } = require("../middleware/authMiddleware");
+const { authenticateToken, isAdmin } = require("../middleware/AuthMiddleware");
 
 // Middleware to authenticate the token and check if the user is an admin
 router.use(authenticateToken, isAdmin);

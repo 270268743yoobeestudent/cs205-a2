@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const QuizController = require("../controllers/QuizController");
-const { authenticateToken, isAdmin } = require("../middleware/authMiddleware");
+const { authenticateToken, isAdmin } = require("../middleware/AuthMiddleware");
 
 // Admin only: Create a new quiz (requires authentication and admin role)
 router.post("/", authenticateToken, isAdmin, QuizController.createQuiz);

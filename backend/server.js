@@ -1,16 +1,16 @@
+require("dotenv").config(); // Load environment variables FIRST
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const dotenv = require("dotenv");
 
-const authRoutes = require("./routes/AuthRoutes"); // Add this line to import authRoutes
+const authRoutes = require("./routes/AuthRoutes");
 const trainingRoutes = require("./routes/TrainingModuleRoutes");
 const quizRoutes = require("./routes/QuizRoutes");
 const reportRoutes = require("./routes/ReportRoutes");
-const adminRoutes = require("./routes/AdminRoutes"); // New Admin Routes
+const adminRoutes = require("./routes/AdminRoutes"); 
 
-dotenv.config();
-console.log("JWT_SECRET: ", process.env.JWT_SECRET); // Remove in production
+console.log("JWT_SECRET:", process.env.JWT_SECRET); // Debugging (Remove in production)
 
 const app = express();
 
@@ -28,11 +28,11 @@ mongoose
   .catch((error) => console.log("MongoDB Connection Error:", error));
 
 // Routes
-app.use("/auth", authRoutes); // Add this route for authentication
+app.use("/auth", authRoutes);
 app.use("/training", trainingRoutes);
 app.use("/quizzes", quizRoutes);
 app.use("/reports", reportRoutes);
-app.use("/admin", adminRoutes); // New Admin Route for Reports
+app.use("/admin", adminRoutes);
 
 // Default Route
 app.get("/", (req, res) => {

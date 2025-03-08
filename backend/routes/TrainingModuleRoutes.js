@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const TrainingModuleController = require('../controllers/TrainingModuleController');
-const authenticateToken = require('../middleware/authMiddleware'); // Correct import for authentication
+const authenticateToken = require('../middleware/AuthMiddleware'); // Correct import for authentication
 const validateModuleInput = require('../middleware/ValidateModuleInput'); // Optional: validation middleware
 
 // Route to create a new training module (Admin Only)
