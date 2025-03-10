@@ -21,9 +21,9 @@ app.use(express.json()); // Parse JSON requests
 app.use(cookieParser()); // Parse cookies
 app.use(requestLogger); // Log incoming requests
 app.use(cors({ 
-  origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:3000", // Dynamically set allowed origins
-  credentials: true // Allow cookies in CORS requests
-})); 
+  origin: "http://localhost:3000", // Allow requests only from the local frontend
+  credentials: true, // Allow cookies in CORS requests
+}));
 app.use(rateLimiter); // Apply rate limiting to all routes
 
 // MongoDB Connection
@@ -31,16 +31,28 @@ mongoose
   .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     const { host, port } = mongoose.connection;
-    console.log(`MongoDB connected to ${host}:${port}`);
+    console.log(`MongoDB connected successfully`);
   })
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Health Check Endpoint
-app.get("/api/health", (req, res) => {
-  res.status(200).json({ success: true, message: "Server is healthy" });
+// Routes
+
+// Welcome Route for Root URL (http://localhost:5000/)
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome to the Backend API!",
+  });
 });
 
-// Routes
+// Health Check Endpoint
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ 
+    success: true, 
+    message: "Server is healthy" 
+  });
+});
+
 app.use("/api/auth", AuthRoutes); // Authentication endpoints
 app.use("/api/users", UserRoutes); // User-specific endpoints
 app.use("/api/admin", AdminRoutes); // Admin-specific endpoints
