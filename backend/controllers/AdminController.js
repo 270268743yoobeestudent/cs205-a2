@@ -1,86 +1,162 @@
+const mongoose = require("mongoose");
 const Report = require("../models/Report");
-const Module = require("../models/TrainingModule");
-const User = require("../models/User"); // Assuming the User model exists for employee details
 
 /**
- * Get all reports (Admin Only)
+ * Fetch all reports
  */
-exports.getAllReports = async (req, res) => {
+exports.getAllReports = async (req, res, next) => {
   try {
     const reports = await Report.find()
-      .populate("employeeId", "name email"); // Populate employeeId to get relevant user info
+      .populate("employeeId", "firstName lastName email")
+      .populate("completedModules", "title")
+      .populate({
+        path: "quizScores.quizId",
+        select: "title createdAt",
+      });
 
-    res.status(200).json(reports);
-  } catch (error) {
-    console.error("Error fetching reports:", error);
-    res.status(500).json({ error: "Failed to retrieve reports", details: error.message });
-  }
-};
-
-/**
- * Get an individual employee's report (Admin Only)
- */
-exports.getEmployeeReport = async (req, res) => {
-  try {
-    const { employeeId } = req.params;
-
-    // Ensure that the employee report exists
-    const report = await Report.findOne({ employeeId })
-      .populate("employeeId", "name email"); // Populate to get user info
-
-    if (!report) {
-      return res.status(404).json({ error: "No report found for this employee" });
-    }
-
-    res.status(200).json(report);
-  } catch (error) {
-    console.error("Error fetching employee report:", error);
-    res.status(500).json({ error: "Failed to retrieve employee report", details: error.message });
-  }
-};
-
-/**
- * Get an employee's training progress (Admin Only)
- */
-exports.getEmployeeProgress = async (req, res) => {
-  try {
-    const { employeeId } = req.params;
-
-    // Find the employee's report by ID
-    const report = await Report.findOne({ employeeId })
-      .populate("employeeId", "name email");
-
-    if (!report) {
-      return res.status(404).json({ error: "No report found for this employee" });
-    }
-
-    // Get total modules and completed modules count
-    const totalModules = await Module.countDocuments(); // Get the total count of modules in the system
-    const completedModules = report.completedModules?.length || 0;
-    const remainingModules = totalModules - completedModules;
-
-    // Calculate the average quiz score
-    let totalScore = 0;
-    let totalQuestions = 0;
-
-    report.quizScores?.forEach(({ score, totalQuestions: quizTotal }) => {
-      totalScore += score;
-      totalQuestions += quizTotal;
-    });
-
-    const averageQuizScore = totalQuestions > 0 ? (totalScore / totalQuestions) * 100 : 0;
-
-    // Respond with structured progress data
     res.status(200).json({
-      employeeId: report.employeeId._id,
-      name: report.employeeId.name,
-      email: report.employeeId.email,
-      completedModules,
-      remainingModules,
-      averageQuizScore: averageQuizScore.toFixed(2), // Format the score to 2 decimal places
+      success: true,
+      data: reports,
     });
-  } catch (error) {
-    console.error("Error fetching employee progress:", error);
-    res.status(500).json({ error: "Failed to retrieve employee progress", details: error.message });
+  } catch (err) {
+    console.error("Error fetching all reports:", err);
+    next(err);
+  }
+};
+
+/**
+ * Fetch a specific employee's report
+ */
+exports.getEmployeeReport = async (req, res, next) => {
+  try {
+    const { employeeId } = req.params;
+
+    if (!mongoose.isValidObjectId(employeeId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employee ID format.",
+      });
+    }
+
+    const report = await Report.findOne({ employeeId })
+      .populate("employeeId", "firstName lastName email")
+      .populate("completedModules", "title")
+      .populate({
+        path: "quizScores.quizId",
+        select: "title createdAt",
+      });
+
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: "No report found for this employee.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: report,
+    });
+  } catch (err) {
+    console.error(`Error fetching report for employee ${employeeId}:`, err);
+    next(err);
+  }
+};
+
+/**
+ * Fetch reports where employees have completed at least one module
+ */
+exports.getFilteredReports = async (req, res, next) => {
+  try {
+    const reports = await Report.find({
+      completedModules: { $exists: true, $ne: [] },
+    })
+      .populate("employeeId", "firstName lastName email")
+      .populate("completedModules", "title");
+
+    if (!reports || reports.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No reports found with completed modules.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: reports,
+    });
+  } catch (err) {
+    console.error("Error fetching filtered reports:", err);
+    next(err);
+  }
+};
+
+/**
+ * Update an employee's report
+ */
+exports.updateEmployeeReport = async (req, res, next) => {
+  try {
+    const { employeeId } = req.params;
+
+    if (!mongoose.isValidObjectId(employeeId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employee ID format.",
+      });
+    }
+
+    const updatedReport = await Report.findOneAndUpdate(
+      { employeeId },
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedReport) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee report not found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: updatedReport,
+    });
+  } catch (err) {
+    console.error(`Error updating report for employee ${employeeId}:`, err);
+    next(err);
+  }
+};
+
+/**
+ * Delete an employee's report
+ */
+exports.deleteEmployeeReport = async (req, res, next) => {
+  try {
+    const { employeeId } = req.params;
+
+    if (!mongoose.isValidObjectId(employeeId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employee ID format.",
+      });
+    }
+
+    const deletedReport = await Report.findOneAndDelete({ employeeId });
+
+    if (!deletedReport) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee report not found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Report deleted successfully.",
+    });
+  } catch (err) {
+    console.error(`Error deleting report for employee ${employeeId}:`, err);
+    next(err);
   }
 };

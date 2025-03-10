@@ -1,61 +1,73 @@
-require("dotenv").config(); // Load environment variables FIRST
+require("dotenv").config(); // Load environment variables at the very beginning
 
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors");
+const cookieParser = require("cookie-parser"); // For parsing cookies
+const cors = require("cors"); // To handle cross-origin requests
+const errorHandler = require("./middleware/ErrorHandler"); // Centralized error handler
+const rateLimiter = require("./middleware/RateLimiter"); // Rate limiting middleware
+const requestLogger = require("./middleware/RequestLogger"); // Request logging middleware
 
-const authRoutes = require("./routes/AuthRoutes");
-const trainingRoutes = require("./routes/TrainingModuleRoutes");
-const quizRoutes = require("./routes/QuizRoutes");
-const reportRoutes = require("./routes/ReportRoutes");
-const adminRoutes = require("./routes/AdminRoutes");
-
-console.log("JWT_SECRET:", process.env.JWT_SECRET); // Debugging (Remove in production)
+const AuthRoutes = require("./routes/AuthRoutes"); // Authentication routes
+const UserRoutes = require("./routes/UserRoutes"); // User-specific routes
+const AdminRoutes = require("./routes/AdminRoutes"); // Admin-specific routes
+const QuizRoutes = require("./routes/QuizRoutes"); // Quiz-related routes
+const TrainingModuleRoutes = require("./routes/TrainingModuleRoutes"); // Training module routes
 
 const app = express();
 
 // Middleware
-app.use(express.json());
-app.use(cors());
+app.use(express.json()); // Parse JSON requests
+app.use(cookieParser()); // Parse cookies
+app.use(requestLogger); // Log incoming requests
+app.use(cors({ 
+  origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:3000", // Dynamically set allowed origins
+  credentials: true // Allow cookies in CORS requests
+})); 
+app.use(rateLimiter); // Apply rate limiting to all routes
 
-// Database Connection
+// MongoDB Connection
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    const { host, port } = mongoose.connection;
+    console.log(`MongoDB connected to ${host}:${port}`);
   })
-  .then(() => console.log("MongoDB Connected"))
-  .catch((error) => console.log("MongoDB Connection Error:", error));
+  .catch((err) => console.error("MongoDB connection error:", err));
+
+// Health Check Endpoint
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ success: true, message: "Server is healthy" });
+});
 
 // Routes
-app.use("/auth", authRoutes);
-app.use("/training", trainingRoutes);
-app.use("/quizzes", quizRoutes);
-app.use("/reports", reportRoutes);
-app.use("/admin", adminRoutes);
+app.use("/api/auth", AuthRoutes); // Authentication endpoints
+app.use("/api/users", UserRoutes); // User-specific endpoints
+app.use("/api/admin", AdminRoutes); // Admin-specific endpoints
+app.use("/api/quizzes", QuizRoutes); // Quiz-related endpoints
+app.use("/api/modules", TrainingModuleRoutes); // Training module endpoints
 
-// Default Route
-app.get("/", (req, res) => {
-  res.send("Cybersecurity Training API is running...");
+// Fallback Route for Undefined Endpoints
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Endpoint not found",
+  });
 });
 
-// Error Handling Middleware
-app.use((err, req, res, next) => {
-  console.error(err);  // Log the error for debugging
-  res.status(500).json({ message: "An unexpected error occurred." });
+// Centralized Error Handler (should always come last)
+app.use(errorHandler);
+
+// Graceful Shutdown
+process.on("SIGINT", async () => {
+  console.log("Graceful shutdown initiated...");
+  await mongoose.connection.close();
+  console.log("MongoDB connection closed.");
+  process.exit(0);
 });
 
-// Start Server
+// Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-});
-
-// Graceful Shutdown
-process.on("SIGINT", () => {
-  console.log("Server shutting down...");
-  mongoose.connection.close(() => {
-    console.log("MongoDB disconnected");
-    process.exit(0);
-  });
 });

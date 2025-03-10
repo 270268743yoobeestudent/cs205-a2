@@ -4,22 +4,25 @@ const TrainingModuleSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
-      trim: true
+      required: [true, 'Module name is required'], // Added a more descriptive error message
+      trim: true,
     },
     description: {
       type: String,
-      required: true,
-      trim: true
+      required: [true, 'Module description is required'], // Added a more descriptive error message
+      trim: true,
     },
-    createdAt: {
-      type: Date,
-      default: Date.now
-    }
   },
-  { timestamps: true }
+  {
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt` fields
+  }
 );
 
-const TrainingModule = mongoose.model('TrainingModule', TrainingModuleSchema);
+// Middleware example for additional future-proofing (optional)
+TrainingModuleSchema.pre('save', function (next) {
+  // Any custom logic before saving can be added here
+  next();
+});
 
-module.exports = TrainingModule;
+// Exporting the model
+module.exports = mongoose.model('TrainingModule', TrainingModuleSchema);

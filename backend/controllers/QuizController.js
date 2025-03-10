@@ -5,68 +5,87 @@ const User = require("../models/User");
 /**
  * Create a new quiz
  */
-exports.createQuiz = async (req, res) => {
+exports.createQuiz = async (req, res, next) => {
   try {
     const { moduleId, questions } = req.body;
 
     // Validate input
     if (!moduleId || !Array.isArray(questions) || questions.length === 0) {
-      return res.status(400).json({ error: "Missing required fields or invalid questions format." });
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields or invalid questions format.",
+      });
     }
 
     // Check if the training module exists
     const trainingModule = await Module.findById(moduleId);
     if (!trainingModule) {
-      return res.status(404).json({ error: "Training module not found." });
+      return res.status(404).json({
+        success: false,
+        message: "Training module not found.",
+      });
     }
 
     // Create and save the new quiz
     const newQuiz = await Quiz.create({ module: moduleId, questions });
 
-    res.status(201).json({ message: "Quiz created successfully.", quiz: newQuiz });
+    res.status(201).json({
+      success: true,
+      message: "Quiz created successfully.",
+      data: newQuiz,
+    });
   } catch (error) {
     console.error("Create Quiz Error:", error);
-    res.status(500).json({ error: "Internal server error.", details: error.message });
+    next(error);
   }
 };
 
 /**
  * Retrieve all quizzes
  */
-exports.getQuizzes = async (req, res) => {
+exports.getQuizzes = async (req, res, next) => {
   try {
     const quizzes = await Quiz.find().populate("module", "title");
 
-    res.status(200).json(quizzes);
+    res.status(200).json({
+      success: true,
+      data: quizzes,
+    });
   } catch (error) {
     console.error("Get Quizzes Error:", error);
-    res.status(500).json({ error: "Failed to fetch quizzes.", details: error.message });
+    next(error);
   }
 };
 
 /**
  * Retrieve a single quiz by ID
  */
-exports.getQuizById = async (req, res) => {
+exports.getQuizById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const quiz = await Quiz.findById(id).populate("module", "title");
 
     if (!quiz) {
-      return res.status(404).json({ error: "Quiz not found." });
+      return res.status(404).json({
+        success: false,
+        message: "Quiz not found.",
+      });
     }
 
-    res.status(200).json(quiz);
+    res.status(200).json({
+      success: true,
+      data: quiz,
+    });
   } catch (error) {
     console.error("Get Quiz By ID Error:", error);
-    res.status(500).json({ error: "Internal server error.", details: error.message });
+    next(error);
   }
 };
 
 /**
  * Submit quiz answers and get score
  */
-exports.submitQuiz = async (req, res) => {
+exports.submitQuiz = async (req, res, next) => {
   try {
     const { id } = req.params; // Quiz ID
     const { answers } = req.body; // User's submitted answers
@@ -74,18 +93,27 @@ exports.submitQuiz = async (req, res) => {
 
     // Check for valid user authentication
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized. Please log in to submit the quiz." });
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized. Please log in to submit the quiz.",
+      });
     }
 
     // Fetch the quiz and only return necessary fields (questions)
     const quiz = await Quiz.findById(id).select("questions");
     if (!quiz) {
-      return res.status(404).json({ error: "Quiz not found." });
+      return res.status(404).json({
+        success: false,
+        message: "Quiz not found.",
+      });
     }
 
-    // Validate answer submission format (check if answers match the question count)
+    // Validate answer submission format
     if (!Array.isArray(answers) || answers.length !== quiz.questions.length) {
-      return res.status(400).json({ error: "Invalid submission format. Ensure all questions are answered." });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid submission format. Ensure all questions are answered.",
+      });
     }
 
     // Calculate the user's score
@@ -96,7 +124,10 @@ exports.submitQuiz = async (req, res) => {
     // Save the result in the user's profile
     const user = await User.findById(userId).select("quizResults");
     if (!user) {
-      return res.status(404).json({ error: "User not found." });
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
     }
 
     user.quizResults.push({
@@ -110,12 +141,15 @@ exports.submitQuiz = async (req, res) => {
 
     // Return quiz results
     res.status(200).json({
+      success: true,
       message: "Quiz submitted successfully.",
-      score,
-      totalQuestions: quiz.questions.length,
+      data: {
+        score,
+        totalQuestions: quiz.questions.length,
+      },
     });
   } catch (error) {
     console.error("Submit Quiz Error:", error);
-    res.status(500).json({ error: "Internal server error.", details: error.message });
+    next(error);
   }
 };

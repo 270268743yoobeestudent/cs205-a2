@@ -5,43 +5,60 @@ const UserSchema = new mongoose.Schema(
   {
     username: {
       type: String,
-      required: true,
+      required: [true, "Username is required"],
       unique: true,
-      trim: true,  // Ensure no leading or trailing spaces
+      trim: true, // Ensure no leading or trailing spaces
     },
     password: {
       type: String,
-      required: true,
+      required: [true, "Password is required"],
       minlength: [8, "Password must be at least 8 characters long"],
-      match: [/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, 'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character'],
+      match: [
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        "Password must include at least one uppercase letter, one lowercase letter, one number, and one special character",
+      ],
     },
     email: {
       type: String,
-      required: true,
+      required: [true, "Email is required"],
       unique: true,
-      match: [/\S+@\S+\.\S+/, 'Please use a valid email address'],
+      match: [/\S+@\S+\.\S+/, "Please use a valid email address"],
     },
     role: {
       type: String,
-      enum: ["admin", "user"],
-      default: "user",
-      required: true,  // Ensure a valid role is always set
+      enum: ["employee", "admin"], // Options for roles
+      default: "employee", // Default is set to "employee"
+      required: [true, "Role is required"],
     },
     quizResults: [
       {
-        quiz: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz" },
-        score: { type: Number, min: [0, "Score cannot be negative"], required: true },
-        totalQuestions: { type: Number, min: [1, "Total questions must be at least 1"], required: true },
+        quiz: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Quiz",
+          required: [true, "Quiz ID is required"],
+        },
+        score: {
+          type: Number,
+          min: [0, "Score cannot be negative"],
+          required: [true, "Quiz score is required"],
+        },
+        totalQuestions: {
+          type: Number,
+          min: [1, "Total questions must be at least 1"],
+          required: [true, "Total questions are required"],
+        },
         submittedAt: { type: Date, default: Date.now },
       },
     ],
     firstName: {
       type: String,
-      required: true,
+      required: [true, "First name is required"],
+      trim: true,
     },
     lastName: {
       type: String,
-      required: true,
+      required: [true, "Last name is required"],
+      trim: true,
     },
     profilePicture: {
       type: String,
@@ -50,7 +67,7 @@ const UserSchema = new mongoose.Schema(
     lastLogin: { type: Date },
   },
   {
-    timestamps: true,  // Automatically add createdAt and updatedAt fields
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt` fields
   }
 );
 
@@ -75,7 +92,7 @@ UserSchema.methods.isAdmin = function () {
   return this.role === "admin";
 };
 
-// Indexing for performance optimization (optional)
+// Indexing for optimized query performance
 UserSchema.index({ username: 1 });
 UserSchema.index({ email: 1 });
 

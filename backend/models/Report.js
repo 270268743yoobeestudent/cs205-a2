@@ -7,7 +7,6 @@ const ReportSchema = new mongoose.Schema(
       ref: "User",
       required: [true, "Employee ID is required"],
     },
-
     completedModules: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -15,15 +14,17 @@ const ReportSchema = new mongoose.Schema(
         required: [true, "Completed modules are required"],
         validate: {
           validator: async function (value) {
-            // Check if module already exists for the employee
-            const report = await mongoose.model('Report').findOne({ employeeId: this.employeeId, completedModules: value });
-            return !report; // If report exists, validation fails (module already completed)
+            // Check if the module already exists for the employee
+            const report = await mongoose.model("Report").findOne({
+              employeeId: this.employeeId,
+              completedModules: value,
+            });
+            return !report; // If the report exists, validation fails (module already completed)
           },
           message: "Module is already completed by this employee.",
         },
       },
     ],
-
     quizScores: [
       {
         quizId: {
@@ -37,7 +38,7 @@ const ReportSchema = new mongoose.Schema(
           min: [0, "Score cannot be negative"],
           validate: {
             validator: function (v) {
-              return v <= this.totalQuestions; // Ensure score is not greater than total questions
+              return v <= this.totalQuestions; // Ensure the score is not greater than total questions
             },
             message: "Score cannot be greater than the total number of questions.",
           },
@@ -53,32 +54,35 @@ const ReportSchema = new mongoose.Schema(
         },
       },
     ],
-
     improvementAreas: {
       type: [String],
       default: [],
       validate: {
         validator: function (v) {
-          // Optional: Ensure improvementAreas is non-empty if necessary
-          return v.length === 0 || v.length > 0;
+          return Array.isArray(v); // Validate that it's an array
         },
-        message: "Improvement areas should not be empty if provided.",
+        message: "Improvement areas must be an array of strings.",
       },
     },
-
     lastUpdated: {
       type: Date,
       default: Date.now,
     },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt fields automatically
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt` fields
   }
 );
 
-// Indexes for performance optimization (optional)
+// Middleware to ensure `lastUpdated` is always accurate
+ReportSchema.pre("save", function (next) {
+  this.lastUpdated = Date.now();
+  next();
+});
+
+// Indexes for performance optimization
 ReportSchema.index({ employeeId: 1 });
 ReportSchema.index({ "quizScores.quizId": 1 });
-ReportSchema.index({ lastUpdated: 1 });  // Optional: If you frequently query by lastUpdated
+ReportSchema.index({ lastUpdated: 1 }); // Useful for sorting by recent updates
 
 module.exports = mongoose.model("Report", ReportSchema);

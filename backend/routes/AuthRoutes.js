@@ -1,93 +1,65 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const { authenticateToken, isAdmin } = require('../middleware/AuthMiddleware');
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 const router = express.Router();
 
-// Register new user or admin
-router.post('/register', async (req, res) => {
+// Register a new user or admin
+router.post("/register", async (req, res, next) => {
   const { username, password, role } = req.body;
 
   try {
+    // Check if the username already exists
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      return res.status(409).json({ success: false, message: 'User already exists' });  // Conflict status
+      return res.status(409).json({ success: false, message: "User already exists" }); // Conflict
     }
 
-    // You could add a password strength check here
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = new User({
+    // Create the user
+    const user = await User.create({
       username,
       password: hashedPassword,
-      role: role || 'user', // Default role is 'user'
+      role: role || "employee", // Default role is "employee"
     });
 
-    await user.save();
-    res.status(201).json({ success: true, message: 'User registered successfully' });
+    res.status(201).json({ success: true, message: "User registered successfully", data: user });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Error during registration:", error);
+    next(error);
   }
 });
 
-// Login user
-router.post('/login', async (req, res) => {
+// Login a user or admin
+router.post("/login", async (req, res, next) => {
   const { username, password } = req.body;
 
   try {
+    // Find the user by username
     const user = await User.findOne({ username });
     if (!user) {
-      return res.status(400).json({ success: false, message: 'Invalid credentials' });
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
 
+    // Verify the password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ success: false, message: 'Invalid credentials' });
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: '1h',  // You can customize this if you need a longer session
-    });
+    // Generate a token
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
     res.status(200).json({ success: true, token });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-// Protect routes for authenticated users
-router.get('/me', authenticateToken, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.userId);
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-
-    res.status(200).json({
-      success: true,
-      username: user.username,
-      role: user.role,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-// Admin-only route for managing users
-router.get('/admin/users', authenticateToken, isAdmin, async (req, res) => {
-  try {
-    const users = await User.find();
-    res.status(200).json({
-      success: true,
-      data: users,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Error during login:", error);
+    next(error);
   }
 });
 
