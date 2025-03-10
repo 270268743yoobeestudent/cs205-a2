@@ -19,6 +19,13 @@ const QuestionSchema = new mongoose.Schema({
   answer: {
     type: String,
     required: [true, 'Answer is required'],  // More descriptive error message
+    validate: {
+      validator: function(v) {
+        // Ensure the answer is one of the options
+        return this.options.includes(v);
+      },
+      message: 'Answer must be one of the provided options.',
+    },
   },
 });
 
@@ -44,7 +51,16 @@ const QuizSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+}, {
+  timestamps: true, // Automatically adds `createdAt` and `updatedAt` fields
 });
+
+// Adding an index to `module` to optimize queries based on training module
+QuizSchema.index({ module: 1 });
 
 // Exporting the Quiz model to be used in other files
 module.exports = mongoose.model('Quiz', QuizSchema);

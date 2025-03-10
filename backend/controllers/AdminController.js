@@ -1,74 +1,86 @@
 const Report = require("../models/Report");
 const Module = require("../models/TrainingModule");
-const User = require("../models/User");  // Assuming you have a User model to get employee details
+const User = require("../models/User"); // Assuming the User model exists for employee details
 
-// Existing function to get all reports
+/**
+ * Get all reports (Admin Only)
+ */
 exports.getAllReports = async (req, res) => {
   try {
-    const reports = await Report.find().populate("employeeId", "name email");
+    const reports = await Report.find()
+      .populate("employeeId", "name email"); // Populate employeeId to get relevant user info
+
     res.status(200).json(reports);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch reports", details: error.message });
+    console.error("Error fetching reports:", error);
+    res.status(500).json({ error: "Failed to retrieve reports", details: error.message });
   }
 };
 
-// Existing function to get an employee's report
+/**
+ * Get an individual employee's report (Admin Only)
+ */
 exports.getEmployeeReport = async (req, res) => {
   try {
     const { employeeId } = req.params;
-    const report = await Report.findOne({ employeeId }).populate("employeeId", "name email");
 
-    if (!report) {
-      return res.status(404).json({ error: "Report not found for this employee" });
-    }
-
-    res.status(200).json(report);
-  } catch (error) {
-    res.status(500).json({ error: "Server error", details: error.message });
-  }
-};
-
-// New function to get an employee's progress
-exports.getEmployeeProgress = async (req, res) => {
-  try {
-    const { employeeId } = req.params;
-
-    // Find the employee's report
-    const report = await Report.findOne({ employeeId }).populate("employeeId", "name email");
+    // Ensure that the employee report exists
+    const report = await Report.findOne({ employeeId })
+      .populate("employeeId", "name email"); // Populate to get user info
 
     if (!report) {
       return res.status(404).json({ error: "No report found for this employee" });
     }
 
-    // Get completed modules
-    const completedModules = report.completedModules.length;
+    res.status(200).json(report);
+  } catch (error) {
+    console.error("Error fetching employee report:", error);
+    res.status(500).json({ error: "Failed to retrieve employee report", details: error.message });
+  }
+};
 
-    // Get all modules (to calculate remaining modules)
-    const allModules = await Module.find();
+/**
+ * Get an employee's training progress (Admin Only)
+ */
+exports.getEmployeeProgress = async (req, res) => {
+  try {
+    const { employeeId } = req.params;
 
-    // Calculate remaining modules
-    const remainingModules = allModules.length - completedModules;
+    // Find the employee's report by ID
+    const report = await Report.findOne({ employeeId })
+      .populate("employeeId", "name email");
 
-    // Calculate average quiz score
-    let totalQuizScore = 0;
+    if (!report) {
+      return res.status(404).json({ error: "No report found for this employee" });
+    }
+
+    // Get total modules and completed modules count
+    const totalModules = await Module.countDocuments(); // Get the total count of modules in the system
+    const completedModules = report.completedModules?.length || 0;
+    const remainingModules = totalModules - completedModules;
+
+    // Calculate the average quiz score
+    let totalScore = 0;
     let totalQuestions = 0;
 
-    report.quizScores.forEach((quizScore) => {
-      totalQuizScore += quizScore.score;
-      totalQuestions += quizScore.totalQuestions;
+    report.quizScores?.forEach(({ score, totalQuestions: quizTotal }) => {
+      totalScore += score;
+      totalQuestions += quizTotal;
     });
 
-    const averageQuizScore = totalQuestions > 0 ? (totalQuizScore / totalQuestions) * 100 : 0;
+    const averageQuizScore = totalQuestions > 0 ? (totalScore / totalQuestions) * 100 : 0;
 
-    // Respond with progress data
+    // Respond with structured progress data
     res.status(200).json({
-      employeeId: report.employeeId,
+      employeeId: report.employeeId._id,
       name: report.employeeId.name,
+      email: report.employeeId.email,
       completedModules,
       remainingModules,
-      averageQuizScore,
+      averageQuizScore: averageQuizScore.toFixed(2), // Format the score to 2 decimal places
     });
   } catch (error) {
-    res.status(500).json({ error: "Error retrieving employee progress", details: error.message });
+    console.error("Error fetching employee progress:", error);
+    res.status(500).json({ error: "Failed to retrieve employee progress", details: error.message });
   }
 };

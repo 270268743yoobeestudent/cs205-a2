@@ -1,18 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const TrainingModuleController = require('../controllers/TrainingModuleController');
-const authenticateToken = require('../middleware/AuthMiddleware'); // Correct import for authentication
-const validateModuleInput = require('../middleware/ValidateModuleInput'); // Optional: validation middleware
+const {authenticateToken} = require('../middleware/AuthMiddleware'); 
+const validateModuleInput = require('../middleware/ValidateModuleInput'); 
 
 // Route to create a new training module (Admin Only)
 router.post('/', authenticateToken, validateModuleInput, async (req, res) => {
   try {
-    // Call the controller function to create a new module
     const newModule = await TrainingModuleController.createModule(req.body);
-    res.status(201).json(newModule); // Return the newly created module
+    res.status(201).json(newModule);
   } catch (error) {
     console.error('Error creating module:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error while creating module' });
   }
 });
 
@@ -20,10 +19,10 @@ router.post('/', authenticateToken, validateModuleInput, async (req, res) => {
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const modules = await TrainingModuleController.getModules();
-    res.json(modules);
+    res.status(200).json(modules);
   } catch (error) {
     console.error('Error fetching modules:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error while fetching modules' });
   }
 });
 
@@ -34,10 +33,10 @@ router.get('/:id', authenticateToken, async (req, res) => {
     if (!module) {
       return res.status(404).json({ message: 'Module not found' });
     }
-    res.json(module);
+    res.status(200).json(module);
   } catch (error) {
     console.error('Error fetching module by ID:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error while fetching module' });
   }
 });
 
