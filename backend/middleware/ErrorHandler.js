@@ -1,11 +1,9 @@
-// Centralized Error Handling Middleware
 const errorHandler = (err, req, res, next) => {
-    console.error("Error:", err.stack); // Log the error stack for debugging
-    res.status(err.status || 500).json({
-      success: false,
-      message: err.message || "Internal Server Error.",
-    });
-  };
-  
-  module.exports = errorHandler;
-  
+  console.error("Error:", err.message);
+  res.status(500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+};
+
+module.exports = errorHandler;

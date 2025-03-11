@@ -1,52 +1,51 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User"); // Adjust the path if needed
+const User = require("../models/User");
+const { isAuthenticated, isAdmin } = require("../middleware/AuthMiddleware");
+const validateRegister = require("../middleware/ValidateRegister");
 const router = express.Router();
 
 /**
  * Register a new user (employee or admin)
  * POST /api/auth/register
  */
-router.post("/register", async (req, res, next) => {
-  const { username, password, role } = req.body;
+router.post("/register", validateRegister, async (req, res, next) => {
+  const { username, firstName, lastName, email, password, role } = req.body;
 
   try {
-    // Validate request body
-    if (!username || !password) {
-      return res.status(400).json({
+    // Check if the username or email already exists
+    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+    if (existingUser) {
+      return res.status(409).json({
         success: false,
-        message: "Username and password are required.",
+        message: "Username or email already exists",
       });
     }
 
-    // Check if the username already exists
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(409).json({ 
-        success: false, 
-        message: "User already exists." 
-      }); // Conflict
-    }
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create the user
-    const user = await User.create({
+    // Create a new user
+    const newUser = new User({
       username,
-      password: hashedPassword,
-      role: role || "employee", // Default role is "employee"
+      firstName,
+      lastName,
+      email,
+      password,
+      role: role || "employee",
     });
+
+    await newUser.save();
 
     res.status(201).json({
       success: true,
-      message: "User registered successfully.",
-      data: { id: user._id, username: user.username, role: user.role },
+      message: "User registered successfully",
+      data: {
+        id: newUser._id,
+        username: newUser.username,
+        role: newUser.role,
+      },
     });
   } catch (error) {
-    console.error("Error during registration:", error);
-    next(error); // Forward error to the centralized error handler
+    console.error("Registration error:", error);
+    next(error); // Forward error to centralized error handler
   }
 });
 
@@ -58,48 +57,84 @@ router.post("/login", async (req, res, next) => {
   const { username, password } = req.body;
 
   try {
-    // Validate request body
-    if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Username and password are required.",
-      });
-    }
-
-    // Find the user by username
+    // Find user by username
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: "Invalid credentials.",
+        message: "Invalid credentials",
       });
     }
 
-    // Verify the password
+    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({
         success: false,
-        message: "Invalid credentials.",
+        message: "Invalid credentials",
       });
     }
 
-    // Generate a JWT
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" } // Token expires in 1 hour
-    );
+    // Save user data to session
+    req.session.user = {
+      id: user._id,
+      username: user.username,
+      role: user.role,
+    };
 
     res.status(200).json({
       success: true,
-      message: "Login successful.",
-      token,
+      message: "Login successful",
+      user: req.session.user, // Return session details
     });
   } catch (error) {
-    console.error("Error during login:", error);
-    next(error); // Forward error to the centralized error handler
+    console.error("Login error:", error);
+    next(error); // Forward error to centralized error handler
   }
+});
+
+/**
+ * Logout a user
+ * POST /api/auth/logout
+ */
+router.post("/logout", isAuthenticated, (req, res, next) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Logout error:", err);
+      return res.status(500).json({ message: "Failed to log out" });
+    }
+
+    res.clearCookie("connect.sid"); // Clear the session cookie
+    res.status(200).json({ success: true, message: "Logout successful" });
+  });
+});
+
+/**
+ * Get current user's profile (protected)
+ * GET /api/auth/profile
+ */
+router.get("/profile", isAuthenticated, async (req, res, next) => {
+  try {
+    res.status(200).json({
+      success: true,
+      message: "User profile retrieved successfully",
+      data: req.session.user, // User data comes from session
+    });
+  } catch (error) {
+    console.error("Profile retrieval error:", error);
+    next(error); // Forward error to centralized error handler
+  }
+});
+
+/**
+ * Admin-only test route
+ * GET /api/auth/admin
+ */
+router.get("/admin", isAuthenticated, isAdmin, (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome, Admin!",
+  });
 });
 
 module.exports = router;

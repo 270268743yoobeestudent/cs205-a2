@@ -1,15 +1,15 @@
 /**
  * Middleware to validate input for training modules
- * Ensures that the module name and description are provided in the request body.
+ * Ensures that the module title and description are provided in the request body.
  */
 const validateModuleInput = (req, res, next) => {
-  const { name, description } = req.body;
+  const { title, description } = req.body; // Update to check for 'title' instead of 'name'
 
   // Validate required fields
-  if (!name || !description) {
+  if (!title || !description) {
     return res.status(400).json({
       success: false,
-      message: "Module name and description are required.",
+      message: "Module title and description are required.",
     });
   }
 

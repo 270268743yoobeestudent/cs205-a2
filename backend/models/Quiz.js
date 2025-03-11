@@ -12,22 +12,20 @@ const QuestionSchema = new mongoose.Schema({
     required: [true, 'Options are required'],
     validate: {
       validator: function (v) {
-        return v.length >= 2; // Ensures there are at least 2 options
+        return Array.isArray(v) && v.length === 4; // Ensure exactly 4 options for each question
       },
-      message: 'There should be at least two options for each question.',
+      message: 'Each question must have exactly 4 options.',
     },
   },
-  answer: {
-    type: String,
-    required: [true, 'Answer is required'], // Descriptive error message
+  correctAnswer: {
+    type: Number, // Index of the correct answer in the options array
+    required: [true, 'Correct answer index is required'], // Descriptive error message
     validate: {
       validator: function (v) {
-        // Ensure the answer is one of the options
-        return this.options.includes(v);
+        return v >= 0 && v < this.options.length; // Ensure the index is within the options array range
       },
-      message: 'Answer must be one of the provided options.',
+      message: 'Correct answer index must refer to one of the options.',
     },
-    trim: true, // Trim leading/trailing spaces
   },
 });
 
@@ -38,6 +36,11 @@ const QuizSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'TrainingModule',
       required: [true, 'Module reference is required'], // Relate quiz to a training module
+    },
+    title: {
+      type: String,
+      required: [true, 'Quiz title is required'], // Title of the quiz
+      trim: true,
     },
     questions: {
       type: [QuestionSchema],

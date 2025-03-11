@@ -4,6 +4,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser"); // For parsing cookies
 const cors = require("cors"); // To handle cross-origin requests
+const session = require("express-session"); // For session handling
+const MongoStore = require("connect-mongo"); // For storing sessions in MongoDB
 const errorHandler = require("./middleware/ErrorHandler"); // Centralized error handler
 const rateLimiter = require("./middleware/RateLimiter"); // Rate limiting middleware
 const requestLogger = require("./middleware/RequestLogger"); // Request logging middleware
@@ -19,21 +21,46 @@ const app = express();
 // Middleware
 app.use(express.json()); // Parse JSON requests
 app.use(cookieParser()); // Parse cookies
-app.use(requestLogger); // Log incoming requests
-app.use(cors({ 
-  origin: "http://localhost:3000", // Allow requests only from the local frontend
-  credentials: true, // Allow cookies in CORS requests
-}));
+
+// Add the RequestLogger middleware AFTER JSON and cookie parsers
+app.use(requestLogger);
+
+// Configure CORS Middleware
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Allow requests only from the local frontend
+    credentials: true, // Allow cookies in CORS requests
+  })
+);
 app.use(rateLimiter); // Apply rate limiting to all routes
+
+// Configure Session Middleware
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-session-secret", // Replace with a secure key
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI, // Store sessions in MongoDB
+      collectionName: "sessions", // Name for the sessions collection
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      httpOnly: true, // Prevent client-side JavaScript access
+      maxAge: 1000 * 60 * 60 * 24, // 1 day expiry
+    },
+  })
+);
 
 // MongoDB Connection
 mongoose
-  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.MONGO_URI) // Removed deprecated options
   .then(() => {
-    const { host, port } = mongoose.connection;
     console.log(`MongoDB connected successfully`);
   })
-  .catch((err) => console.error("MongoDB connection error:", err));
+  .catch((err) => {
+    console.error("MongoDB connection error:", err);
+  });
 
 // Routes
 
@@ -47,12 +74,13 @@ app.get("/", (req, res) => {
 
 // Health Check Endpoint
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ 
-    success: true, 
-    message: "Server is healthy" 
+  res.status(200).json({
+    success: true,
+    message: "Server is healthy",
   });
 });
 
+// API Routes
 app.use("/api/auth", AuthRoutes); // Authentication endpoints
 app.use("/api/users", UserRoutes); // User-specific endpoints
 app.use("/api/admin", AdminRoutes); // Admin-specific endpoints

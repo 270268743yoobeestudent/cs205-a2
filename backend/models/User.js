@@ -92,8 +92,4 @@ UserSchema.methods.isAdmin = function () {
   return this.role === "admin";
 };
 
-// Indexing for optimized query performance
-UserSchema.index({ username: 1 });
-UserSchema.index({ email: 1 });
-
 module.exports = mongoose.model("User", UserSchema);

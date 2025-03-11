@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/AdminController");
-const { authenticateToken, isAdmin } = require("../middleware/AuthMiddleware");
+const { isAuthenticated, isAdmin } = require("../middleware/AuthMiddleware");
 
 // Middleware to ensure admin access
-router.use(authenticateToken, isAdmin);
+router.use(isAuthenticated, isAdmin);
 
 // Get all users (Admin only)
 router.get("/users", async (req, res, next) => {
