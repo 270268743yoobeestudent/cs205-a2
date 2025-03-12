@@ -17,6 +17,8 @@ import QuizDetailPage from "./pages/QuizDetailPage"; // Taking quizzes
 import AdminAddQuizPage from "./pages/AdminAddQuizPage"; // Admin add quiz form
 import AdminEditQuizPage from "./pages/AdminEditQuizPage"; // Admin edit quiz form
 import EmployeeProgressPage from "./pages/EmployeeProgressPage"; // Progress tracking page
+import AdminReportsPage from "./pages/AdminReportsPage"; // Admin reports page
+import AdminAddUserPage from "./pages/AdminAddUserPage"; // Add User page for admins
 
 function App() {
   return (
@@ -125,6 +127,26 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["employee"]}>
               <EmployeeProgressPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Reports */}
+        <Route
+          path="/admin/reports"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminReportsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Add User */}
+        <Route
+          path="/admin/add-user"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminAddUserPage />
             </ProtectedRoute>
           }
         />

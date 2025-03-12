@@ -15,8 +15,11 @@ function AdminHomePage() {
         <Link to="/progress-tracking">
           <button className="btn">Progress Tracking</button>
         </Link>
-        <Link to="/reports">
+        <Link to="/admin/reports">
           <button className="btn">Reports</button>
+        </Link>
+        <Link to="/admin/add-user">
+          <button className="btn">Add User</button>
         </Link>
       </div>
     </div>
