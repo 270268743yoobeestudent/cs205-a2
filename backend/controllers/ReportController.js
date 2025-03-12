@@ -20,7 +20,7 @@ exports.getAllReports = async (req, res, next) => {
     });
   } catch (err) {
     console.error("Error fetching all reports:", err);
-    next(err); // Forward error to centralized error handler
+    next(err); // Forward error to centralised error handler
   }
 };
 

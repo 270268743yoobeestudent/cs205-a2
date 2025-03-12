@@ -45,7 +45,7 @@ router.post("/register", validateRegister, async (req, res, next) => {
     });
   } catch (error) {
     console.error("Registration error:", error);
-    next(error); // Forward error to centralized error handler
+    next(error); // Forward error to centralised error handler
   }
 });
 
@@ -89,7 +89,7 @@ router.post("/login", async (req, res, next) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-    next(error); // Forward error to centralized error handler
+    next(error); // Forward error to centralised error handler
   }
 });
 
@@ -122,7 +122,7 @@ router.get("/profile", isAuthenticated, async (req, res, next) => {
     });
   } catch (error) {
     console.error("Profile retrieval error:", error);
-    next(error); // Forward error to centralized error handler
+    next(error); // Forward error to centralised error handler
   }
 });
 

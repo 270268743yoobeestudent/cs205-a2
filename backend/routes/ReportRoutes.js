@@ -13,7 +13,7 @@ router.get("/:employeeId", validateReportInput, checkObjectId("employeeId"), asy
   try {
     await ReportController.getEmployeeReport(req, res);
   } catch (error) {
-    next(error); // Forward error to centralized error handler
+    next(error); // Forward error to centralised error handler
   }
 });
 

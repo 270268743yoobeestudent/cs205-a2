@@ -6,7 +6,7 @@ const isAuthenticated = (req, res, next) => {
     // Check if the user session exists
     if (!req.session.user) {
       console.warn("Authentication failed: No active session.");
-      return res.status(401).json({ message: "Unauthorized. Please log in." });
+      return res.status(401).json({ message: "Unauthorised. Please log in." });
     }
 
     // Attach the user session to the request object
@@ -26,13 +26,13 @@ const isAdmin = (req, res, next) => {
   try {
     // Check if the user is authenticated and has the "admin" role
     if (!req.session.user || req.session.user.role !== "admin") {
-      console.warn("Authorization failed: Admin access required.");
+      console.warn("Authorisation failed: Admin access required.");
       return res.status(403).json({ message: "Forbidden: Admin access required." });
     }
 
     next(); // Proceed to the next middleware or route handler
   } catch (err) {
-    console.error("Authorization error:", err.message);
+    console.error("Authorisation error:", err.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -46,7 +46,7 @@ const hasRole = (...roles) => {
     try {
       // Check if the user is authenticated and their role is included in the allowed roles
       if (!req.session.user || !roles.includes(req.session.user.role)) {
-        console.warn(`Authorization failed: Requires one of the roles: ${roles.join(", ")}.`);
+        console.warn(`Authorisation failed: Requires one of the roles: ${roles.join(", ")}.`);
         return res.status(403).json({
           message: `Forbidden: Requires one of the roles: ${roles.join(", ")}`,
         });
@@ -54,7 +54,7 @@ const hasRole = (...roles) => {
 
       next(); // Proceed to the next middleware or route handler
     } catch (err) {
-      console.error("Authorization error:", err.message);
+      console.error("Authorisation error:", err.message);
       res.status(500).json({ message: "Internal Server Error" });
     }
   };

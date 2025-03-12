@@ -11,7 +11,7 @@ router.post("/", isAuthenticated, isAdmin, validateModuleInput, async (req, res,
     res.status(201).json({ success: true, data: newModule });
   } catch (error) {
     console.error("Error creating training module:", error);
-    next(error); // Pass error to centralized error handling middleware
+    next(error); // Pass error to centralised error handling middleware
   }
 });
 
