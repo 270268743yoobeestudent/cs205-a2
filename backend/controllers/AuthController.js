@@ -1,14 +1,4 @@
-const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-
-// Generate JWT Token
-const generateToken = (user) => {
-  return jwt.sign(
-    { userId: user._id, role: user.role },
-    process.env.JWT_SECRET, // Use a secure, random secret key in environment variables
-    { expiresIn: "1h" } // Token expires in 1 hour
-  );
-};
 
 // Login Endpoint
 exports.login = async (req, res) => {
@@ -20,12 +10,20 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = generateToken(user);
+    // Save user details to session
+    req.session.user = {
+      id: user._id,
+      username: user.username,
+      role: user.role,
+    };
 
+    console.log("Session after login:", req.session); // Debugging session data
+
+    // Respond to the client
     res.status(200).json({
       success: true,
       message: "Login successful",
-      token,
+      user: req.session.user
     });
   } catch (error) {
     console.error("Login Error:", error);
@@ -33,7 +31,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// Register Endpoint (Optional)
+// Register Endpoint (Optional for Admins to Add Users)
 exports.register = async (req, res) => {
   const { username, password, firstName, lastName, email, role } = req.body;
 
@@ -41,15 +39,43 @@ exports.register = async (req, res) => {
     const user = new User({ username, password, firstName, lastName, email, role });
     await user.save();
 
-    const token = generateToken(user);
-
+    // Respond without auto-login
     res.status(201).json({
       success: true,
       message: "User registered successfully",
-      token,
     });
   } catch (error) {
     console.error("Registration Error:", error);
     res.status(500).json({ message: "Server error" });
   }
+};
+
+// Logout Endpoint
+exports.logout = (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Logout error:", err);
+      return res.status(500).json({ message: "Failed to log out" });
+    }
+
+    res.clearCookie("connect.sid"); // Clear session cookie
+    res.status(200).json({ success: true, message: "Logout successful" });
+  });
+};
+
+// Validate Session Endpoint
+exports.validateSession = (req, res) => {
+  console.log("Session Validation: req.session", req.session);
+
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized: No active session",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    role: req.session.user.role, // Return the user's role
+  });
 };

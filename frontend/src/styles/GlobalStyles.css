@@ -1,0 +1,140 @@
+/* Root Variables for Consistent Theming */
+:root {
+    --background-color: #121212; /* Sleek dark background */
+    --card-bg-color: #1e1e1e; /* Slightly lighter for contrast */
+    --primary-color: #0db7ed; /* Vibrant tech blue */
+    --secondary-color: #e5e5e5; /* Subtle light gray */
+    --accent-color: #ff4081; /* Eye-catching pink for highlights */
+    --text-color: #e0e0e0; /* Light gray for text */
+    --heading-color: #ffffff; /* Pure white for headings */
+    --button-hover: #0a9dd8; /* Subtle button hover effect */
+    --font-family: "Roboto", sans-serif; /* Clean and modern font */
+    --border-radius: 8px; /* Rounded corners for a modern look */
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadows */
+    --transition-speed: 0.3s; /* Smooth transitions */
+  }
+  
+  /* Global Body Reset */
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  /* Default Headings */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--heading-color);
+    margin: 0;
+  }
+  
+  h1 {
+    font-size: 2.5rem;
+  }
+  
+  h2 {
+    font-size: 2rem;
+  }
+  
+  h3 {
+    font-size: 1.75rem;
+  }
+  
+  /* Paragraphs */
+  p {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+  }
+  
+  /* Links */
+  a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color var(--transition-speed);
+  }
+  
+  a:hover {
+    color: var(--accent-color);
+  }
+  
+  /* Buttons */
+  button {
+    background-color: var(--primary-color);
+    color: var(--heading-color);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 10px 15px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: var(--box-shadow);
+    transition: background-color var(--transition-speed), transform var(--transition-speed);
+  }
+  
+  button:hover {
+    background-color: var(--button-hover);
+    transform: translateY(-2px); /* Slight lift on hover */
+  }
+  
+  /* Input Fields */
+  input, textarea {
+    background-color: var(--card-bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--secondary-color);
+    border-radius: var(--border-radius);
+    padding: 10px;
+    font-size: 1rem;
+    width: 100%;
+    margin-bottom: 1rem;
+    transition: border var(--transition-speed);
+  }
+  
+  input:focus, textarea:focus {
+    border: 1px solid var(--primary-color);
+    outline: none;
+  }
+  
+  /* Containers */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  /* Cards */
+  .card {
+    background-color: var(--card-bg-color);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--box-shadow);
+    transition: transform var(--transition-speed);
+  }
+  
+  .card:hover {
+    transform: translateY(-5px); /* Lift effect */
+  }
+  
+  /* Grid System */
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .col {
+    flex: 1;
+    min-width: 300px;
+  }
+  
+  /* Footer */
+  footer {
+    background-color: var(--card-bg-color);
+    color: var(--text-color);
+    text-align: center;
+    padding: 20px 0;
+    border-top: 1px solid var(--secondary-color);
+  }
+  

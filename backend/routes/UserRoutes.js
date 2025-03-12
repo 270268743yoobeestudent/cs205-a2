@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const userController = require("../controllers/UserController");
+const { getUserProgress } = require("../controllers/UserController");
 const { isAuthenticated } = require("../middleware/AuthMiddleware");
+
+// Get user progress
+router.get("/me/progress", isAuthenticated, getUserProgress);
 
 // Get the current user's profile
 router.get("/me", isAuthenticated, async (req, res, next) => {

@@ -11,7 +11,37 @@ router.post("/", isAuthenticated, isAdmin, validateModuleInput, async (req, res,
     res.status(201).json({ success: true, data: newModule });
   } catch (error) {
     console.error("Error creating training module:", error);
-    next(error); // Pass error to centralised error handling middleware
+    next(error);
+  }
+});
+
+// Admin only: Route to update an existing training module
+router.put("/:id", isAuthenticated, isAdmin, validateModuleInput, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const updatedModule = await TrainingModuleController.updateModule(id, req.body);
+    if (!updatedModule) {
+      return res.status(404).json({ success: false, message: "Module not found" });
+    }
+    res.status(200).json({ success: true, data: updatedModule });
+  } catch (error) {
+    console.error("Error updating training module:", error);
+    next(error);
+  }
+});
+
+// Admin only: Route to delete a training module
+router.delete("/:id", isAuthenticated, isAdmin, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const deletedModule = await TrainingModuleController.deleteModule(id);
+    if (!deletedModule) {
+      return res.status(404).json({ success: false, message: "Module not found" });
+    }
+    res.status(200).json({ success: true, message: "Module deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting training module:", error);
+    next(error);
   }
 });
 

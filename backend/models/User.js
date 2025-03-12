@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: [true, "Username is required"],
       unique: true,
-      trim: true, // Ensure no leading or trailing spaces
+      trim: true,
     },
     password: {
       type: String,
@@ -26,8 +26,8 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["employee", "admin"], // Options for roles
-      default: "employee", // Default is set to "employee"
+      enum: ["employee", "admin"],
+      default: "employee",
       required: [true, "Role is required"],
     },
     quizResults: [
@@ -35,19 +35,25 @@ const UserSchema = new mongoose.Schema(
         quiz: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Quiz",
-          required: [true, "Quiz ID is required"],
+          required: true,
         },
         score: {
           type: Number,
           min: [0, "Score cannot be negative"],
-          required: [true, "Quiz score is required"],
+          required: true,
         },
         totalQuestions: {
           type: Number,
           min: [1, "Total questions must be at least 1"],
-          required: [true, "Total questions are required"],
+          required: true,
         },
         submittedAt: { type: Date, default: Date.now },
+      },
+    ],
+    completedModules: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "TrainingModule",
       },
     ],
     firstName: {
@@ -67,29 +73,20 @@ const UserSchema = new mongoose.Schema(
     lastLogin: { type: Date },
   },
   {
-    timestamps: true, // Automatically adds `createdAt` and `updatedAt` fields
+    timestamps: true,
   }
 );
 
-// Hash the password before saving
+// Hash password before saving
 UserSchema.pre("save", async function (next) {
-  try {
-    if (!this.isModified("password")) return next();
-    this.password = await bcrypt.hash(this.password, 10);
-    next();
-  } catch (error) {
-    next(error);
-  }
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
 
-// Compare entered password with stored hash
+// Compare passwords
 UserSchema.methods.matchPassword = async function (password) {
   return await bcrypt.compare(password, this.password);
-};
-
-// Custom method to check if user is an admin
-UserSchema.methods.isAdmin = function () {
-  return this.role === "admin";
 };
 
 module.exports = mongoose.model("User", UserSchema);

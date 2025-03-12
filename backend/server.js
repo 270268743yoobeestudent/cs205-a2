@@ -25,16 +25,22 @@ app.use(cookieParser()); // Parse cookies
 // Add the RequestLogger middleware AFTER JSON and cookie parsers
 app.use(requestLogger);
 
-// Configure CORS Middleware
+// Configure CORS Middleware with Debugging
 app.use(
+  (req, res, next) => {
+    console.log("CORS Debug: Origin:", req.headers.origin);
+    next();
+  },
   cors({
     origin: "http://localhost:3000", // Allow requests only from the local frontend
     credentials: true, // Allow cookies in CORS requests
   })
 );
-app.use(rateLimiter); // Apply rate limiting to all routes
 
-// Configure Session Middleware
+// Apply Rate Limiting Middleware
+app.use(rateLimiter);
+
+// Configure Session Middleware with Debugging
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "your-session-secret", // Replace with a secure key
@@ -51,6 +57,13 @@ app.use(
     },
   })
 );
+
+// Debug Session Middleware
+app.use((req, res, next) => {
+  console.log("Session Debug - ID:", req.sessionID);
+  console.log("Session Debug - Data:", req.session);
+  next();
+});
 
 // MongoDB Connection
 mongoose
