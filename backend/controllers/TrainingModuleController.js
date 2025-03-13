@@ -1,117 +1,100 @@
 const TrainingModule = require('../models/TrainingModule');
-const User = require('../models/User');
 
-// Add a new training module (admin only)
-exports.addTrainingModule = async (req, res) => {
+const addTrainingModule = async (moduleData) => {
   try {
-    const { title, description, content } = req.body;
-
-    // Validate request body
-    if (!title || !description || !content) {
-      return res.status(400).json({ message: 'Title, description, and content are required' });
+    // Validate that content is properly structured as an array
+    if (!Array.isArray(moduleData.content) || moduleData.content.length === 0) {
+      throw new Error('Content must be an array with at least one block');
     }
 
-    const newModule = new TrainingModule({ title, description, content });
+    // Validate that each content block has a heading and body
+    for (const block of moduleData.content) {
+      if (!block.heading || !block.body) {
+        throw new Error('Each content block must contain both heading and body');
+      }
+    }
+
+    // Create a new training module with the validated data
+    const newModule = new TrainingModule(moduleData);
     await newModule.save();
-
-    res.status(201).json({ message: 'Training module added successfully', newModule });
+    return newModule;
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error adding training module' });
+    console.error("Error saving training module:", error);
+    throw new Error('Error saving training module');
   }
 };
 
-// Edit a training module (admin only)
-exports.editTrainingModule = async (req, res) => {
+// Edit a training module
+const editTrainingModule = async (id, moduleData) => {
   try {
-    const { id } = req.params;
-    const { title, description, content } = req.body;
-
-    // Validate request body
-    if (!title || !description || !content) {
-      return res.status(400).json({ message: 'Title, description, and content are required' });
-    }
-
-    const module = await TrainingModule.findById(id);
-    if (!module) {
-      return res.status(404).json({ message: 'Training module not found' });
-    }
-
-    module.title = title;
-    module.description = description;
-    module.content = content;
-
-    await module.save();
-    res.status(200).json({ message: 'Training module updated successfully', module });
+    const updatedModule = await TrainingModule.findByIdAndUpdate(id, moduleData, { new: true });
+    return updatedModule;
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error editing training module' });
+    console.error("Error updating training module:", error);
+    throw new Error('Error updating training module');
   }
 };
 
-// Delete a training module (admin only)
-exports.deleteTrainingModule = async (req, res) => {
+// Delete a training module
+const deleteTrainingModule = async (id) => {
   try {
-    const { id } = req.params;
-
-    const module = await TrainingModule.findById(id);
-    if (!module) {
-      return res.status(404).json({ message: 'Training module not found' });
-    }
-
-    await module.remove();
-    res.status(200).json({ message: 'Training module deleted successfully' });
+    const deletedModule = await TrainingModule.findByIdAndDelete(id);
+    return deletedModule;
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error deleting training module' });
+    console.error("Error deleting training module:", error);
+    throw new Error('Error deleting training module');
   }
 };
 
-// Get all training modules (for users and admins)
-exports.getAllTrainingModules = async (req, res) => {
+// Get all training modules
+const getAllTrainingModules = async () => {
   try {
     const modules = await TrainingModule.find();
-    res.status(200).json(modules);
+    return modules;
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error fetching training modules' });
+    console.error("Error fetching training modules:", error);
+    throw new Error('Error fetching training modules');
   }
 };
 
-// Get a single training module by ID
-exports.getTrainingModuleById = async (req, res) => {
+// Get a training module by ID
+const getTrainingModuleById = async (id) => {
   try {
-    const { id } = req.params;
     const module = await TrainingModule.findById(id);
-    if (!module) {
-      return res.status(404).json({ message: 'Training module not found' });
-    }
-    res.status(200).json(module);
+    return module;
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error fetching training module' });
+    console.error("Error fetching training module by ID:", error);
+    throw new Error('Error fetching module by ID');
   }
 };
 
-// Mark module as completed (user only)
-exports.markModuleAsCompleted = async (req, res) => {
+// Mark a module as completed (for user)
+const markModuleAsCompleted = async (userId, moduleId) => {
+  // Assume you have a user schema with a `completedModules` field
   try {
-    const { userId, moduleId } = req.body;
-
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      throw new Error('User not found');
     }
 
-    if (user.completedModules.includes(moduleId)) {
-      return res.status(400).json({ message: 'Module already marked as completed' });
+    // Add the module ID to the completedModules array if not already added
+    if (!user.completedModules.includes(moduleId)) {
+      user.completedModules.push(moduleId);
+      await user.save();
     }
 
-    user.completedModules.push(moduleId);
-    await user.save();
-    res.status(200).json({ message: 'Module marked as completed' });
+    return { success: true };
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error marking module as completed' });
+    console.error("Error marking module as completed:", error);
+    throw new Error('Error marking module as completed');
   }
+};
+
+module.exports = {
+  addTrainingModule,
+  editTrainingModule,
+  deleteTrainingModule,
+  getAllTrainingModules,
+  getTrainingModuleById,
+  markModuleAsCompleted,
 };

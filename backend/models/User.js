@@ -82,8 +82,12 @@ const UserSchema = new mongoose.Schema(
 // Hash password before saving it to the database
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next(); // Skip hashing if password is not modified
-  this.password = await bcrypt.hash(this.password, 10); // Hash the password with bcrypt
-  next();
+  try {
+    this.password = await bcrypt.hash(this.password, 10); // Hash the password with bcrypt
+    next();
+  } catch (error) {
+    next(error); // Pass error to the next middleware
+  }
 });
 
 // Compare the provided password with the stored hashed password

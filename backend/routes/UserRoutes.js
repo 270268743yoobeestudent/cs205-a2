@@ -1,71 +1,63 @@
 const express = require("express");
+const bcrypt = require("bcryptjs");
 const router = express.Router();
-const User = require("../models/User");
-const userController = require("../controllers/UserController");
-const { isAuthenticated } = require("../middleware/AuthMiddleware");
+const User = require("../models/User"); // Ensure this is the correct path to your User model
 
-// Get user progress
-router.get("/me/progress", isAuthenticated, userController.getUserProgress);
-
-// Get the current user's profile
-router.get("/me", isAuthenticated, async (req, res, next) => {
+// Registration Route
+router.post("/register", async (req, res) => {
   try {
-    const userId = req.user.id; // Retrieve user ID from authentication middleware
-    const user = await userController.getUserProfile(userId);  // Ensure this function exists in UserController
+    const { username, email, password, firstName, lastName } = req.body;
 
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+    // Ensure all necessary fields are provided
+    if (!username || !email || !password || !firstName || !lastName) {
+      return res.status(400).json({ message: "All fields are required." });
     }
 
-    res.status(200).json({ success: true, data: user });
-  } catch (error) {
-    console.error("Error fetching user profile:", error);
-    next(error);  // Pass the error to the error handler middleware
-  }
-});
-
-// Update the current user's profile
-router.put("/me", isAuthenticated, async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-    const updatedUser = await userController.updateUserProfile(userId, req.body);  // Ensure this function exists
-
-    if (!updatedUser) {
-      return res.status(404).json({ success: false, message: "User not found" });
+    // Check if the username or email already exists
+    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+    if (existingUser) {
+      return res.status(400).json({ message: "Username or Email already exists." });
     }
 
-    res.status(200).json({ success: true, data: updatedUser });
-  } catch (error) {
-    console.error("Error updating user profile:", error);
-    next(error);  // Pass the error to the error handler middleware
-  }
-});
+    // Hash the password before saving it to the database
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-// Mark a training module as completed
-router.patch("/me/complete-module/:moduleId", isAuthenticated, async (req, res) => {
-  try {
-    const { moduleId } = req.params;
-    const userId = req.user.id;
-
-    // Find user and update completedModules array
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { $addToSet: { completedModules: moduleId } }, // Prevent duplicates
-      { new: true }
-    ).populate("completedModules");
-
-    if (!updatedUser) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
-
-    res.json({
-      success: true,
-      message: "Module marked as completed",
-      completedModules: updatedUser.completedModules,
+    // Create a new user object
+    const newUser = new User({ 
+      username, 
+      email, 
+      password: hashedPassword, 
+      firstName, 
+      lastName 
     });
-  } catch (error) {
-    console.error("Error marking module as completed:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+
+    // Save the new user to the database
+    await newUser.save();
+
+    res.status(201).json({ message: "User registered successfully." });
+  } catch (err) {
+    console.error("Registration error:", err);
+    res.status(500).json({ message: "Internal Server Error", error: err.message });
+  }
+});
+
+// Login Route
+router.post("/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    // Validate user credentials
+    const user = await User.findOne({ username });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Set session data
+    req.session.user = user;
+    res.status(200).json({ message: "Login successful" });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
