@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/GlobalStyles.css'; // Styling for the WelcomePage
+import '../styles/WelcomePage.css';
 
 function WelcomePage() {
   return (
