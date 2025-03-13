@@ -1,0 +1,154 @@
+/* General Page Styling */
+.admin-reports-page {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Page Title */
+.admin-reports-page h1 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Employee Selection */
+.employee-selection {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.employee-selection label {
+    font-weight: bold;
+    font-size: 16px;
+    color: #555;
+}
+
+.employee-selection select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    font-size: 16px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    background: #f9f9f9;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+.employee-selection select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Report Details */
+.report-details {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+/* Report Headings */
+.report-details h2 {
+    color: #007bff;
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+.report-details h3 {
+    font-size: 18px;
+    color: #333;
+    margin-top: 15px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 5px;
+}
+
+/* Report Lists */
+.report-details ul {
+    list-style: none;
+    padding: 0;
+}
+
+.report-details ul li {
+    background: #ffffff;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 5px solid #007bff;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+}
+
+/* No Data Available */
+.report-details ul li:last-child {
+    border-left: 5px solid #ccc;
+    color: #777;
+}
+
+/* Error Message */
+.error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+/* Export to CSV Button */
+button {
+    background: linear-gradient(135deg, #28a745, #218838);
+    color: white;
+    font-size: 16px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    margin-top: 20px;
+    display: block;
+    width: 100%;
+    font-weight: bold;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #218838, #1e7e34);
+    transform: scale(1.05);
+}
+
+/* Loading Animation */
+.loading {
+    font-size: 18px;
+    color: #007bff;
+    font-weight: bold;
+    text-align: center;
+    animation: pulse 1.5s infinite;
+}
+
+/* Keyframe for Loading Animation */
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .admin-reports-page {
+        width: 90%;
+        padding: 20px;
+    }
+
+    button {
+        width: 100%;
+    }
+}

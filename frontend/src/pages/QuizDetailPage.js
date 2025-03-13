@@ -22,7 +22,7 @@ function QuizDetailPage() {
         setQuiz(response.data.data);
         setAnswers(Array(response.data.data.questions.length).fill(null)); // Initialize empty answers
       } catch (err) {
-        setError("Failed to load quiz details.");
+        setError("⚠️ Failed to load quiz details.");
       } finally {
         setLoading(false);
       }
@@ -52,23 +52,26 @@ function QuizDetailPage() {
       );
       setResult(response.data.data); // Store result (score, etc.)
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to submit quiz.");
+      setError(err.response?.data?.message || "❌ Failed to submit quiz.");
     }
   };
 
-  if (loading) return <div>Loading quiz...</div>;
+  if (loading) return <div className="loading">⏳ Loading quiz...</div>;
   if (error) return <div className="error-message">{error}</div>;
 
   return (
     <div className="quiz-detail-page">
-      <h1>{quiz.title}</h1>
+      <h1>📖 {quiz.title}</h1>
       <form onSubmit={handleSubmit}>
         {quiz.questions.map((question, index) => (
           <div key={index} className="question-container">
-            <h3>Question {index + 1}: {question.question}</h3>
+            <h3>❓ Question {index + 1}: {question.question}</h3>
             <div className="options-container">
               {question.options.map((option, optionIndex) => (
-                <label key={optionIndex} className="option-label">
+                <label
+                  key={optionIndex}
+                  className={`option-label ${answers[index] === optionIndex ? "selected" : ""}`}
+                >
                   <input
                     type="radio"
                     name={`question-${index}`}
@@ -82,12 +85,12 @@ function QuizDetailPage() {
             </div>
           </div>
         ))}
-        <button type="submit" className="submit-quiz-button">Submit Quiz</button>
+        <button type="submit" className="submit-quiz-button">✅ Submit Quiz</button>
       </form>
 
       {result && (
         <div className="quiz-result">
-          <h2>Quiz Results</h2>
+          <h2>🏆 Quiz Results</h2>
           <p>Your Score: {result.score} / {result.totalQuestions}</p>
         </div>
       )}

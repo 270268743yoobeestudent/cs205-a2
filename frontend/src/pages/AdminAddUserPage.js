@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "../styles/GlobalStyles.css"; // Add custom styles if needed
+import "../styles/AdminAddUserPage.css";
 
 function AdminAddUserPage() {
   const [formData, setFormData] = useState({

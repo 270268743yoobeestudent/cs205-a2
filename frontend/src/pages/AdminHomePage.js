@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/AdminHomePage.css';
+import '../assets/logo.png';
 
 function AdminHomePage() {
   return (

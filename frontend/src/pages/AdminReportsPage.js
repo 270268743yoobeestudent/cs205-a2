@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/GlobalStyles.css"; // Add styles for the reports page
+import '../styles/AdminReportsPage.css';
 
 function AdminReportsPage() {
   const [employees, setEmployees] = useState([]); // List of employees
