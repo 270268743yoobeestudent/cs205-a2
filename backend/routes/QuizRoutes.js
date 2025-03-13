@@ -5,12 +5,13 @@ const { isAuthenticated, isAdmin } = require("../middleware/AuthMiddleware");
 
 /**
  * Admin only: Create a new quiz
- * POST /api/quizzes
+ * POST /api/quizzes/create
  */
-router.post("/", isAuthenticated, isAdmin, async (req, res) => {
+router.post('/create', isAuthenticated, isAdmin, async (req, res) => {
   try {
-    // Ensure the request body contains the necessary data
     const { title, questions } = req.body;
+
+    // Validate request body
     if (!title || !questions || !Array.isArray(questions) || questions.length === 0) {
       return res.status(400).json({
         success: false,
@@ -18,19 +19,26 @@ router.post("/", isAuthenticated, isAdmin, async (req, res) => {
       });
     }
 
-    // Create the new quiz
-    const newQuiz = await QuizController.createQuiz(req.body);
+    const newQuiz = await QuizController.createQuiz({ title, questions });
+    
+    if (!newQuiz) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create quiz.",
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: "Quiz created successfully.",
       data: newQuiz,
     });
   } catch (error) {
-    console.error("Error creating quiz:", error.message);
+    console.error("Error creating quiz:", error);
     res.status(500).json({
       success: false,
       message: "Failed to create quiz.",
-      error: error.message,
+      error: error.message || "Unknown error occurred",
     });
   }
 });
@@ -41,17 +49,17 @@ router.post("/", isAuthenticated, isAdmin, async (req, res) => {
  */
 router.get("/", async (req, res) => {
   try {
-    const quizzes = await QuizController.getQuizzes();
+    const quizzes = await QuizController.getAllQuizzes();
     res.status(200).json({
       success: true,
       data: quizzes,
     });
   } catch (error) {
-    console.error("Error fetching quizzes:", error.message);
+    console.error("Error fetching quizzes:", error);
     res.status(500).json({
       success: false,
       message: "Failed to retrieve quizzes.",
-      error: error.message,
+      error: error.message || "Unknown error occurred",
     });
   }
 });
@@ -63,16 +71,8 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Validate quiz ID
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "Quiz ID is required.",
-      });
-    }
-
     const quiz = await QuizController.getQuizById(id);
+
     if (!quiz) {
       return res.status(404).json({
         success: false,
@@ -85,11 +85,11 @@ router.get("/:id", async (req, res) => {
       data: quiz,
     });
   } catch (error) {
-    console.error("Error fetching quiz by ID:", error.message);
+    console.error("Error fetching quiz by ID:", error);
     res.status(500).json({
       success: false,
       message: "Failed to retrieve quiz by ID.",
-      error: error.message,
+      error: error.message || "Unknown error occurred",
     });
   }
 });
@@ -100,8 +100,8 @@ router.get("/:id", async (req, res) => {
  */
 router.post("/:id/submit", isAuthenticated, async (req, res) => {
   try {
+    const { userId, answers } = req.body;
     const { id } = req.params;
-    const { answers } = req.body;
 
     // Validate quiz ID and answers
     if (!id || !answers || !Array.isArray(answers) || answers.length === 0) {
@@ -111,19 +111,18 @@ router.post("/:id/submit", isAuthenticated, async (req, res) => {
       });
     }
 
-    // Submit the quiz answers
-    const result = await QuizController.submitQuiz(id, answers);
+    const result = await QuizController.submitQuiz(userId, id, answers);
     res.status(200).json({
       success: true,
       message: "Quiz submitted successfully.",
       data: result,
     });
   } catch (error) {
-    console.error("Error submitting quiz:", error.message);
+    console.error("Error submitting quiz:", error);
     res.status(500).json({
       success: false,
       message: "Failed to submit quiz.",
-      error: error.message,
+      error: error.message || "Unknown error occurred",
     });
   }
 });
