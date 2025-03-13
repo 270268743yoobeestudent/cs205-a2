@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/GlobalStyles.css";
+import "../styles/EmployeeProgressPage.css"
 
 function EmployeeProgressPage() {
   const [progress, setProgress] = useState(null); // Holds progress data

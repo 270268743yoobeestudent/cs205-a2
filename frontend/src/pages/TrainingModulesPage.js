@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import "../styles/GlobalStyles.css";
+import '../styles/TrainingModules.css';
+
 
 function TrainingModulesPage() {
   const [modules, setModules] = useState([]);
