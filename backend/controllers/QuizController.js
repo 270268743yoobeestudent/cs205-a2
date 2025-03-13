@@ -1,87 +1,125 @@
-const Quiz = require("../models/Quiz");
-const Module = require("../models/TrainingModule");
-const User = require("../models/User");
+const Quiz = require('../models/Quiz');
+const User = require('../models/User');
 
-/**
- * Create a new quiz
- */
-exports.createQuiz = async (data) => {
-  const { module, title, questions } = data;
+// Create a new quiz (admin only)
+exports.createQuiz = async (req, res) => {
+  try {
+    const { title, questions } = req.body;
 
-  // Validate input
-  if (!module || !title || !Array.isArray(questions) || questions.length === 0) {
-    throw new Error("Missing required fields or invalid questions format.");
+    // Validate request body
+    if (!title || !questions || questions.length === 0) {
+      return res.status(400).json({ message: 'Title and questions are required' });
+    }
+
+    const newQuiz = new Quiz({ title, questions });
+    await newQuiz.save();
+
+    res.status(201).json({ message: 'Quiz created successfully', newQuiz });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error creating quiz' });
   }
-
-  // Check if the training module exists
-  const trainingModule = await Module.findById(module);
-  if (!trainingModule) {
-    throw new Error("Training module not found.");
-  }
-
-  // Create and save the new quiz
-  const newQuiz = await Quiz.create({ module, title, questions });
-  return newQuiz;
 };
 
-/**
- * Retrieve all quizzes
- */
-exports.getQuizzes = async () => {
-  const quizzes = await Quiz.find().populate("module", "title description");
-  return quizzes;
+// Edit an existing quiz (admin only)
+exports.editQuiz = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, questions } = req.body;
+
+    // Validate request body
+    if (!title || !questions || questions.length === 0) {
+      return res.status(400).json({ message: 'Title and questions are required' });
+    }
+
+    const quiz = await Quiz.findById(id);
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz not found' });
+    }
+
+    quiz.title = title;
+    quiz.questions = questions;
+
+    await quiz.save();
+    res.status(200).json({ message: 'Quiz updated successfully', quiz });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error editing quiz' });
+  }
 };
 
-/**
- * Retrieve a single quiz by ID
- */
-exports.getQuizById = async (id) => {
-  const quiz = await Quiz.findById(id).populate("module", "title description");
-  if (!quiz) {
-    throw new Error("Quiz not found.");
+// Delete a quiz (admin only)
+exports.deleteQuiz = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const quiz = await Quiz.findById(id);
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz not found' });
+    }
+
+    await quiz.remove();
+    res.status(200).json({ message: 'Quiz deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error deleting quiz' });
   }
-  return quiz;
 };
 
-/**
- * Submit quiz answers and calculate score
- */
-exports.submitQuiz = async (id, userId, answers) => {
-  if (!userId) {
-    throw new Error("Unauthorized. Please log in to submit the quiz.");
+// Get all quizzes (for users and admins)
+exports.getAllQuizzes = async (req, res) => {
+  try {
+    const quizzes = await Quiz.find();
+    res.status(200).json(quizzes);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching quizzes' });
   }
+};
 
-  // Fetch the quiz and its questions
-  const quiz = await Quiz.findById(id).select("questions");
-  if (!quiz) {
-    throw new Error("Quiz not found.");
+// Get a single quiz by ID
+exports.getQuizById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const quiz = await Quiz.findById(id);
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz not found' });
+    }
+    res.status(200).json(quiz);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching quiz' });
   }
+};
 
-  // Validate answer submission format
-  if (!Array.isArray(answers) || answers.length !== quiz.questions.length) {
-    throw new Error("Invalid submission format. Ensure all questions are answered.");
+// Submit quiz answers (user only)
+exports.submitQuiz = async (req, res) => {
+  try {
+    const { userId, quizId, answers } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz not found' });
+    }
+
+    let score = 0;
+    quiz.questions.forEach((question, index) => {
+      if (question.correctAnswer === answers[index]) {
+        score++;
+      }
+    });
+
+    user.quizScores.push({ quizId, score });
+    await user.save();
+
+    res.status(200).json({ message: 'Quiz submitted successfully', score });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error submitting quiz' });
   }
-
-  // Calculate the user's score
-  const score = quiz.questions.reduce((total, question, index) => {
-    return total + (answers[index] === question.correctAnswer ? 1 : 0);
-  }, 0);
-
-  // Save the result in the user's profile
-  const user = await User.findById(userId).select("quizResults");
-  if (!user) {
-    throw new Error("User not found.");
-  }
-
-  user.quizResults.push({
-    quiz: id,
-    score,
-    totalQuestions: quiz.questions.length,
-    dateTaken: new Date(),
-  });
-
-  await user.save();
-
-  // Return quiz results
-  return { score, totalQuestions: quiz.questions.length };
 };

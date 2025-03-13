@@ -29,11 +29,11 @@ const validateReportInput = (req, res, next) => {
     for (let i = 0; i < quizScores.length; i++) {
       const score = quizScores[i];
 
-      // Check for quizId
-      if (!score.quizId) {
+      // Validate quizId
+      if (!score.quizId || !mongoose.Types.ObjectId.isValid(score.quizId)) {
         return res.status(400).json({
           success: false,
-          message: `Quiz ID is required for score at index ${i + 1}.`,
+          message: `Valid Quiz ID is required for score at index ${i + 1}.`,
         });
       }
 
@@ -41,7 +41,7 @@ const validateReportInput = (req, res, next) => {
       if (typeof score.score !== "number" || score.score < 0) {
         return res.status(400).json({
           success: false,
-          message: `Valid score is required for quiz at index ${i + 1}.`,
+          message: `Valid score (non-negative number) is required for quiz at index ${i + 1}.`,
         });
       }
 
@@ -54,10 +54,10 @@ const validateReportInput = (req, res, next) => {
       }
 
       // Validate totalQuestions
-      if (!score.totalQuestions || typeof score.totalQuestions !== "number") {
+      if (typeof score.totalQuestions !== "number" || score.totalQuestions <= 0) {
         return res.status(400).json({
           success: false,
-          message: `Total number of questions is required for quiz at index ${i + 1}.`,
+          message: `Valid totalQuestions (greater than 0) is required for quiz at index ${i + 1}.`,
         });
       }
     }

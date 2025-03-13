@@ -5,7 +5,10 @@ exports.login = async (req, res) => {
   const { username, password } = req.body;
 
   try {
+    // Find user by username
     const user = await User.findOne({ username });
+    
+    // Check if user exists and if password matches
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -19,7 +22,7 @@ exports.login = async (req, res) => {
 
     console.log("Session after login:", req.session); // Debugging session data
 
-    // Respond to the client
+    // Respond with success
     res.status(200).json({
       success: true,
       message: "Login successful",
@@ -36,6 +39,13 @@ exports.register = async (req, res) => {
   const { username, password, firstName, lastName, email, role } = req.body;
 
   try {
+    // Check if the user already exists
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
+
+    // Create a new user
     const user = new User({ username, password, firstName, lastName, email, role });
     await user.save();
 
@@ -58,7 +68,8 @@ exports.logout = (req, res) => {
       return res.status(500).json({ message: "Failed to log out" });
     }
 
-    res.clearCookie("connect.sid"); // Clear session cookie
+    // Clear the session cookie
+    res.clearCookie("connect.sid");
     res.status(200).json({ success: true, message: "Logout successful" });
   });
 };

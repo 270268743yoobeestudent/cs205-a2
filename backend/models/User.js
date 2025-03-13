@@ -30,11 +30,12 @@ const UserSchema = new mongoose.Schema(
       default: "employee",
       required: [true, "Role is required"],
     },
+    // Store quiz results as an array of objects, including the quizId, score, and totalQuestions
     quizResults: [
       {
         quiz: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Quiz",
+          ref: "Quiz", // Refers to the Quiz model
           required: true,
         },
         score: {
@@ -50,10 +51,11 @@ const UserSchema = new mongoose.Schema(
         submittedAt: { type: Date, default: Date.now },
       },
     ],
+    // Store completed modules as references to the TrainingModule model
     completedModules: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "TrainingModule",
+        ref: "TrainingModule", // Refers to the TrainingModule model
       },
     ],
     firstName: {
@@ -68,23 +70,23 @@ const UserSchema = new mongoose.Schema(
     },
     profilePicture: {
       type: String,
-      default: "default-profile.png",
+      default: "default-profile.png", // Default profile picture
     },
     lastLogin: { type: Date },
   },
   {
-    timestamps: true,
+    timestamps: true, // Automatically adds createdAt and updatedAt fields
   }
 );
 
-// Hash password before saving
+// Hash password before saving it to the database
 UserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 10);
+  if (!this.isModified("password")) return next(); // Skip hashing if password is not modified
+  this.password = await bcrypt.hash(this.password, 10); // Hash the password with bcrypt
   next();
 });
 
-// Compare passwords
+// Compare the provided password with the stored hashed password
 UserSchema.methods.matchPassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };

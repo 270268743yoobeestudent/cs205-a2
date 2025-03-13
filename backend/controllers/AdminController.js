@@ -67,6 +67,55 @@ exports.addUser = async (req, res, next) => {
   }
 };
 
+// Fetch all employees for progress tracking
+exports.getAllEmployees = async (req, res, next) => {
+  try {
+    const employees = await User.find({ role: "employee" }, "firstName lastName email");
+    if (!employees || employees.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No employees found.",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      data: employees,
+    });
+  } catch (err) {
+    console.error("Error fetching employees:", err);
+    next(err);
+  }
+};
+
+// Fetch progress for a specific employee
+exports.getEmployeeProgress = async (req, res, next) => {
+  try {
+    const { employeeId } = req.params;
+    if (!mongoose.isValidObjectId(employeeId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employee ID.",
+      });
+    }
+
+    const employee = await User.findById(employeeId).populate("progress");
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: employee.progress,
+    });
+  } catch (err) {
+    console.error("Error fetching employee progress:", err);
+    next(err);
+  }
+};
+
 // Fetch all reports
 exports.getAllReports = async (req, res, next) => {
   try {
@@ -110,25 +159,6 @@ exports.getEmployeeReport = async (req, res, next) => {
     res.status(200).json({ success: true, data: report });
   } catch (err) {
     console.error(`Error fetching report for employee ${employeeId}:`, err);
-    next(err);
-  }
-};
-
-// Fetch reports with completed modules
-exports.getFilteredReports = async (req, res, next) => {
-  try {
-    const reports = await Report.find({ completedModules: { $exists: true, $ne: [] } })
-      .populate("employeeId", "firstName lastName email")
-      .populate("completedModules", "title");
-    if (!reports || reports.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No reports found with completed modules.",
-      });
-    }
-    res.status(200).json({ success: true, data: reports });
-  } catch (err) {
-    console.error("Error fetching filtered reports:", err);
     next(err);
   }
 };

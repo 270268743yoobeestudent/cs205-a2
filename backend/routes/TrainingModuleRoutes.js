@@ -11,7 +11,7 @@ router.post("/", isAuthenticated, isAdmin, validateModuleInput, async (req, res,
     res.status(201).json({ success: true, data: newModule });
   } catch (error) {
     console.error("Error creating training module:", error);
-    next(error);
+    next(error); // Forward error to centralized error handler
   }
 });
 
@@ -26,7 +26,7 @@ router.put("/:id", isAuthenticated, isAdmin, validateModuleInput, async (req, re
     res.status(200).json({ success: true, data: updatedModule });
   } catch (error) {
     console.error("Error updating training module:", error);
-    next(error);
+    next(error); // Forward error to centralized error handler
   }
 });
 
@@ -41,7 +41,7 @@ router.delete("/:id", isAuthenticated, isAdmin, async (req, res, next) => {
     res.status(200).json({ success: true, message: "Module deleted successfully" });
   } catch (error) {
     console.error("Error deleting training module:", error);
-    next(error);
+    next(error); // Forward error to centralized error handler
   }
 });
 
@@ -52,7 +52,7 @@ router.get("/", async (req, res, next) => {
     res.status(200).json({ success: true, data: modules });
   } catch (error) {
     console.error("Error fetching training modules:", error);
-    next(error);
+    next(error); // Forward error to centralized error handler
   }
 });
 
@@ -73,7 +73,7 @@ router.get("/:id", async (req, res, next) => {
     res.status(200).json({ success: true, data: module });
   } catch (error) {
     console.error("Error fetching module by ID:", error);
-    next(error);
+    next(error); // Forward error to centralized error handler
   }
 });
 

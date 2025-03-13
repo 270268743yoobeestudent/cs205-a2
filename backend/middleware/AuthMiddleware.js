@@ -12,7 +12,7 @@ const isAuthenticated = (req, res, next) => {
     // Attach the user session to the request object
     req.user = req.session.user;
 
-    console.log("Authenticated user:", req.user); // Debugging
+    console.log("Authenticated user:", req.user); // Debugging: Log authenticated user details
 
     next(); // Proceed to the next middleware or route handler
   } catch (err) {
@@ -32,7 +32,7 @@ const isAdmin = (req, res, next) => {
       return res.status(403).json({ message: "Forbidden: Admin access required." });
     }
 
-    console.log("Admin access granted to user:", req.session.user.username); // Debugging
+    console.log("Admin access granted to user:", req.session.user.username); // Log successful admin access
 
     next(); // Proceed to the next middleware or route handler
   } catch (err) {
@@ -56,7 +56,7 @@ const hasRole = (...roles) => {
         });
       }
 
-      console.log(`Access granted to user: ${req.session.user.username} with role: ${req.session.user.role}`); // Debugging
+      console.log(`Access granted to user: ${req.session.user.username} with role: ${req.session.user.role}`); // Log role-based access
 
       next(); // Proceed to the next middleware or route handler
     } catch (err) {

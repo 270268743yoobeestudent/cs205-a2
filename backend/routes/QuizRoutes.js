@@ -5,10 +5,21 @@ const { isAuthenticated, isAdmin } = require("../middleware/AuthMiddleware");
 
 /**
  * Admin only: Create a new quiz
+ * POST /api/quizzes
  */
 router.post("/", isAuthenticated, isAdmin, async (req, res) => {
   try {
-    const newQuiz = await QuizController.createQuiz(req.body); // Pass only body to controller
+    // Ensure the request body contains the necessary data
+    const { title, questions } = req.body;
+    if (!title || !questions || !Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Quiz title and questions are required.",
+      });
+    }
+
+    // Create the new quiz
+    const newQuiz = await QuizController.createQuiz(req.body);
     res.status(201).json({
       success: true,
       message: "Quiz created successfully.",
@@ -26,6 +37,7 @@ router.post("/", isAuthenticated, isAdmin, async (req, res) => {
 
 /**
  * Public route: Retrieve all quizzes
+ * GET /api/quizzes
  */
 router.get("/", async (req, res) => {
   try {
@@ -46,11 +58,13 @@ router.get("/", async (req, res) => {
 
 /**
  * Public route: Retrieve a quiz by ID
+ * GET /api/quizzes/:id
  */
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Validate quiz ID
     if (!id) {
       return res.status(400).json({
         success: false,
@@ -82,19 +96,23 @@ router.get("/:id", async (req, res) => {
 
 /**
  * Protected route: Submit quiz answers
+ * POST /api/quizzes/:id/submit
  */
 router.post("/:id/submit", isAuthenticated, async (req, res) => {
   try {
     const { id } = req.params;
+    const { answers } = req.body;
 
-    if (!id) {
+    // Validate quiz ID and answers
+    if (!id || !answers || !Array.isArray(answers) || answers.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Quiz ID is required.",
+        message: "Quiz ID and answers are required.",
       });
     }
 
-    const result = await QuizController.submitQuiz(id, req.body.answers); // Pass ID and answers to controller
+    // Submit the quiz answers
+    const result = await QuizController.submitQuiz(id, answers);
     res.status(200).json({
       success: true,
       message: "Quiz submitted successfully.",

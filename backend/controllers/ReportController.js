@@ -2,17 +2,26 @@ const mongoose = require("mongoose");
 const Report = require("../models/Report");
 
 /**
- * Fetch all reports
+ * Fetch all reports with pagination and sorting
  */
 exports.getAllReports = async (req, res, next) => {
   try {
+    const page = parseInt(req.query.page) || 1;  // Default to page 1
+    const limit = parseInt(req.query.limit) || 10;  // Default limit to 10
+    const sortBy = req.query.sortBy || "createdAt"; // Sorting field (default: createdAt)
+    const sortOrder = req.query.sortOrder || "desc"; // Sorting order (default: descending)
+
+    // Fetch reports with pagination and sorting
     const reports = await Report.find()
-      .populate("employeeId", "firstName lastName email") // Updated to reflect detailed user fields
-      .populate("completedModules", "title") // Populate completed modules
+      .populate("employeeId", "firstName lastName email")
+      .populate("completedModules", "title")
       .populate({
         path: "quizScores.quizId",
         select: "title createdAt",
-      }); // Populate quiz details
+      })
+      .skip((page - 1) * limit)  // Skip documents for pagination
+      .limit(limit)  // Limit the number of documents
+      .sort({ [sortBy]: sortOrder === "asc" ? 1 : -1 });  // Sort reports based on query parameters
 
     res.status(200).json({
       success: true,
@@ -20,7 +29,7 @@ exports.getAllReports = async (req, res, next) => {
     });
   } catch (err) {
     console.error("Error fetching all reports:", err);
-    next(err); // Forward error to centralised error handler
+    next(err);
   }
 };
 
@@ -40,7 +49,7 @@ exports.getEmployeeReport = async (req, res, next) => {
     }
 
     const report = await Report.findOne({ employeeId })
-      .populate("employeeId", "firstName lastName email") // Populate user details
+      .populate("employeeId", "firstName lastName email")
       .populate("completedModules", "title")
       .populate({
         path: "quizScores.quizId",

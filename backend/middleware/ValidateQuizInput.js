@@ -1,7 +1,24 @@
 const mongoose = require("mongoose");
 
+/**
+ * Helper function to validate string length between a given range.
+ */
+const isValidStringLength = (str, min, max) => {
+  return typeof str === "string" && str.trim().length >= min && str.trim().length <= max;
+};
+
+/**
+ * Helper function to validate question options.
+ */
+const isValidOptions = (options) => {
+  return Array.isArray(options) && options.length === 4 && options.every((option) => typeof option === "string" && option.trim().length > 0);
+};
+
 const validateQuizInput = (req, res, next) => {
   const { module, title, questions } = req.body;
+
+  // Trim the inputs to remove leading and trailing spaces
+  req.body.title = title ? title.trim() : '';
 
   // Validate module ID
   if (!module || !mongoose.Types.ObjectId.isValid(module)) {
@@ -12,7 +29,7 @@ const validateQuizInput = (req, res, next) => {
   }
 
   // Validate title
-  if (!title || typeof title !== "string" || title.trim().length < 5 || title.trim().length > 100) {
+  if (!title || !isValidStringLength(title, 5, 100)) {
     return res.status(400).json({
       success: false,
       message: "Quiz title must be a string between 5 and 100 characters.",
@@ -30,16 +47,16 @@ const validateQuizInput = (req, res, next) => {
   const errors = [];
 
   questions.forEach((question, index) => {
+    const trimmedQuestionText = question.question ? question.question.trim() : '';
+
     // Validate question text
-    if (!question.question || typeof question.question !== "string" || question.question.length < 5 || question.question.length > 500) {
+    if (!trimmedQuestionText || !isValidStringLength(trimmedQuestionText, 5, 500)) {
       errors.push(`Question ${index + 1} must have a valid text (5-500 characters).`);
     }
 
     // Validate options
-    if (!Array.isArray(question.options) || question.options.length !== 4) {
-      errors.push(`Question ${index + 1} must have exactly 4 options.`);
-    } else if (!question.options.every((option) => typeof option === "string" && option.trim().length > 0)) {
-      errors.push(`Question ${index + 1} has invalid options. Each option must be a non-empty string.`);
+    if (!isValidOptions(question.options)) {
+      errors.push(`Question ${index + 1} must have exactly 4 valid options.`);
     }
 
     // Validate correctAnswer

@@ -8,30 +8,45 @@ const checkObjectId = require("../middleware/CheckObjectId"); // Middleware for 
 // Apply middleware to authenticate token and restrict access to admins
 router.use(authenticateToken, isAdmin);
 
-// Route to get a specific employee's report (Admin only)
+/**
+ * Route: Get a specific employee's report
+ * Method: GET
+ * Endpoint: /api/reports/:employeeId
+ */
 router.get("/:employeeId", validateReportInput, checkObjectId("employeeId"), async (req, res, next) => {
   try {
+    // Fetch the report for the specific employee
     await ReportController.getEmployeeReport(req, res);
   } catch (error) {
     next(error); // Forward error to centralised error handler
   }
 });
 
-// Route to update an employee's report (Admin only)
+/**
+ * Route: Update an employee's report
+ * Method: PUT
+ * Endpoint: /api/reports/:employeeId
+ */
 router.put("/:employeeId", validateReportInput, checkObjectId("employeeId"), async (req, res, next) => {
   try {
+    // Update the report for the specific employee
     await ReportController.updateEmployeeReport(req, res);
   } catch (error) {
-    next(error);
+    next(error); // Forward error to centralised error handler
   }
 });
 
-// Route to delete an employee's report (Admin only)
+/**
+ * Route: Delete an employee's report
+ * Method: DELETE
+ * Endpoint: /api/reports/:employeeId
+ */
 router.delete("/:employeeId", validateReportInput, checkObjectId("employeeId"), async (req, res, next) => {
   try {
+    // Delete the report for the specific employee
     await ReportController.deleteEmployeeReport(req, res);
   } catch (error) {
-    next(error);
+    next(error); // Forward error to centralised error handler
   }
 });
 

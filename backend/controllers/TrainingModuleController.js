@@ -1,97 +1,117 @@
-const TrainingModule = require("../models/TrainingModule");
+const TrainingModule = require('../models/TrainingModule');
+const User = require('../models/User');
 
-/**
- * Create a new training module
- */
-const createModule = async (moduleData) => {
+// Add a new training module (admin only)
+exports.addTrainingModule = async (req, res) => {
   try {
-    console.log("Creating training module with data:", moduleData); // Log incoming data for debugging
-    const newModule = new TrainingModule(moduleData); // Create a new instance of the model
-    const savedModule = await newModule.save(); // Save the new module to the database
-    console.log("Successfully created training module:", savedModule); // Log the saved module
-    return savedModule; // Return the newly created module
+    const { title, description, content } = req.body;
+
+    // Validate request body
+    if (!title || !description || !content) {
+      return res.status(400).json({ message: 'Title, description, and content are required' });
+    }
+
+    const newModule = new TrainingModule({ title, description, content });
+    await newModule.save();
+
+    res.status(201).json({ message: 'Training module added successfully', newModule });
   } catch (error) {
-    console.error("Error creating module in controller:", error.message);
-    throw new Error("Failed to create training module");
+    console.error(error);
+    res.status(500).json({ message: 'Error adding training module' });
   }
 };
 
-/**
- * Retrieve all training modules
- */
-const getModules = async () => {
+// Edit a training module (admin only)
+exports.editTrainingModule = async (req, res) => {
   try {
-    console.log("Fetching all training modules..."); // Log action for debugging
-    const modules = await TrainingModule.find(); // Fetch all training modules
-    console.log("Successfully retrieved training modules:", modules);
-    return modules;
-  } catch (error) {
-    console.error("Error retrieving modules in controller:", error.message);
-    throw new Error("Failed to fetch training modules");
-  }
-};
+    const { id } = req.params;
+    const { title, description, content } = req.body;
 
-/**
- * Retrieve a single training module by ID
- */
-const getModuleById = async (id) => {
-  try {
-    console.log("Fetching training module with ID:", id); // Log action for debugging
-    const module = await TrainingModule.findById(id); // Fetch module by ID
+    // Validate request body
+    if (!title || !description || !content) {
+      return res.status(400).json({ message: 'Title, description, and content are required' });
+    }
+
+    const module = await TrainingModule.findById(id);
     if (!module) {
-      console.warn("Training module not found for ID:", id);
-      throw new Error("Training module not found");
+      return res.status(404).json({ message: 'Training module not found' });
     }
-    console.log("Successfully retrieved training module:", module);
-    return module;
+
+    module.title = title;
+    module.description = description;
+    module.content = content;
+
+    await module.save();
+    res.status(200).json({ message: 'Training module updated successfully', module });
   } catch (error) {
-    console.error("Error retrieving module by ID in controller:", error.message);
-    throw new Error("Failed to fetch training module by ID");
+    console.error(error);
+    res.status(500).json({ message: 'Error editing training module' });
   }
 };
 
-/**
- * Update an existing training module
- */
-const updateModule = async (id, moduleData) => {
+// Delete a training module (admin only)
+exports.deleteTrainingModule = async (req, res) => {
   try {
-    console.log("Updating training module with ID:", id, "Data:", moduleData);
-    const updatedModule = await TrainingModule.findByIdAndUpdate(id, moduleData, { new: true });
-    if (!updatedModule) {
-      console.warn("Training module not found for update with ID:", id);
-      throw new Error("Training module not found for update");
+    const { id } = req.params;
+
+    const module = await TrainingModule.findById(id);
+    if (!module) {
+      return res.status(404).json({ message: 'Training module not found' });
     }
-    console.log("Successfully updated training module:", updatedModule);
-    return updatedModule;
+
+    await module.remove();
+    res.status(200).json({ message: 'Training module deleted successfully' });
   } catch (error) {
-    console.error("Error updating module in controller:", error.message);
-    throw new Error("Failed to update training module");
+    console.error(error);
+    res.status(500).json({ message: 'Error deleting training module' });
   }
 };
 
-/**
- * Delete a training module
- */
-const deleteModule = async (id) => {
+// Get all training modules (for users and admins)
+exports.getAllTrainingModules = async (req, res) => {
   try {
-    console.log("Deleting training module with ID:", id);
-    const deletedModule = await TrainingModule.findByIdAndDelete(id);
-    if (!deletedModule) {
-      console.warn("Training module not found for deletion with ID:", id);
-      throw new Error("Training module not found for deletion");
-    }
-    console.log("Successfully deleted training module:", deletedModule);
-    return deletedModule;
+    const modules = await TrainingModule.find();
+    res.status(200).json(modules);
   } catch (error) {
-    console.error("Error deleting module in controller:", error.message);
-    throw new Error("Failed to delete training module");
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching training modules' });
   }
 };
 
-module.exports = {
-  createModule,
-  getModules,
-  getModuleById,
-  updateModule,
-  deleteModule,
+// Get a single training module by ID
+exports.getTrainingModuleById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const module = await TrainingModule.findById(id);
+    if (!module) {
+      return res.status(404).json({ message: 'Training module not found' });
+    }
+    res.status(200).json(module);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching training module' });
+  }
+};
+
+// Mark module as completed (user only)
+exports.markModuleAsCompleted = async (req, res) => {
+  try {
+    const { userId, moduleId } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.completedModules.includes(moduleId)) {
+      return res.status(400).json({ message: 'Module already marked as completed' });
+    }
+
+    user.completedModules.push(moduleId);
+    await user.save();
+    res.status(200).json({ message: 'Module marked as completed' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error marking module as completed' });
+  }
 };
