@@ -9,10 +9,10 @@ const isAuthenticated = (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized. Please log in." });
     }
 
-    // Attach the user session to the request object
+    // Attach the user session to the request object for easy access
     req.user = req.session.user;
 
-    console.log("Authenticated user:", req.user); // Debugging: Log authenticated user details
+    console.log("Authenticated user:", req.user.username); // Debugging: Log authenticated user details
 
     next(); // Proceed to the next middleware or route handler
   } catch (err) {
@@ -52,7 +52,7 @@ const hasRole = (...roles) => {
       if (!req.session || !req.session.user || !roles.includes(req.session.user.role)) {
         console.warn(`Authorization failed: Requires one of the roles: ${roles.join(", ")}.`);
         return res.status(403).json({
-          message: `Forbidden: Requires one of the roles: ${roles.join(", ")}`,
+          message: `Forbidden: Requires one of the roles: ${roles.join(", ")}.`,
         });
       }
 
