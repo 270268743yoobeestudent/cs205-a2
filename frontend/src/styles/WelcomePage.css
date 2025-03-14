@@ -4,42 +4,61 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
-    background: #f4f4f9;
+    height: 100vh;
+    background: #c2c2c9;
     text-align: center;
     font-family: 'Arial', sans-serif;
+    position: relative;
 }
 
-/* Logo Styling */
-.logo {
-    width: 120px;
+/* Logo Container */
+.logo-container {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+}
+
+.logo {
+    width: 100%;
+    height: auto;
+    animation: fadeIn 1s ease-in-out;
 }
 
 /* Welcome Content */
 .welcome-content {
     background: #fff;
-    padding: 40px;
+    padding: 50px;
     border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     text-align: center;
-    width: 400px;
-    animation: fadeIn 0.5s ease-in-out;
+    width: 450px;
+    animation: fadeInUp 0.8s ease-in-out;
 }
 
-/* Fade-in Animation */
+/* Fade-in Animations */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* Highlighted Text */
+.highlight {
+    color: #6e8645;
+    font-weight: bold;
 }
 
 /* Titles */
 .welcome-content h1 {
-    font-size: 26px;
+    font-size: 28px;
     color: #222;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
 }
 
 .welcome-content h2 {
@@ -48,57 +67,8 @@
     margin-bottom: 20px;
 }
 
-/* Button Container */
-.button-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Two buttons per row */
-    gap: 15px;
-    margin-top: 20px;
-}
-
-/* Buttons */
-.btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    color: white;
+/* Description */
+.description {
     font-size: 16px;
-    font-weight: bold;
-    padding: 14px 20px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-    width: 100%;
-    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Button Hover */
-.btn:hover {
-    background: linear-gradient(135deg, #0056b3, #004494);
-    transform: scale(1.05);
-}
-
-/* Button Icons */
-.btn i {
-    margin-right: 10px;
-    font-size: 18px;
-}
-
-/* Full-width button for Login */
-.login-btn {
-    margin-top: 20px;
-    width: 100%;
-}
-
-/* Responsive Design */
-@media (max-width: 600px) {
-    .welcome-content {
-        width: 90%;
-    }
-
-    .button-container {
-        grid-template-columns: 1fr; /* Stack buttons on smaller screens */
-    }
-}
+    color: rgb(53, 58, 58); 
+} 
