@@ -1,6 +1,7 @@
 // frontend/src/components/EmployeeRegistration.js
 import React, { useState } from 'react';
 import axios from 'axios';
+import '../styles/styles.css';
 
 function EmployeeRegistration() {
   const [username, setUsername] = useState('');

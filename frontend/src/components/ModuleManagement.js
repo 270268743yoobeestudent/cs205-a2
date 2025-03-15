@@ -1,6 +1,7 @@
 // frontend/src/components/ModuleManagement.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import '../styles/styles.css';
 
 function ModuleManagement() {
   // For new module creation

@@ -1,6 +1,7 @@
 // frontend/src/components/TrainingModuleViewer.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import '../styles/styles.css';
 
 function TrainingModuleViewer() {
   const [modules, setModules] = useState([]);

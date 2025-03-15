@@ -1,7 +1,7 @@
 /* General Styles */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #dce8f2;
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f7fc;
     text-align: center;
     margin: 0;
     padding: 0;
@@ -9,28 +9,56 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    height: auto;
 }
 
-/* Dashboard Container */
-.dashboard-container {
-    max-width: 350px;
+/* Dashboard & Page Containers */
+.container {
+    max-width: 500px;
     background: white;
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     text-align: center;
+    margin-top: 20px;
+    transition: 0.3s;
 }
 
-/* Remove Bullet Points */
-.button-container {
-    list-style: none;
-    padding: 0;
+/* Add subtle hover effect */
+.container:hover {
+    transform: scale(1.02);
 }
 
-/* Logout Button */
-.button {
-    width: 100%;
+/* Section Titles */
+h2 {
+    font-size: 22px;
+    color: #333;
+}
+
+h3 {
+    font-size: 18px;
+    color: #555;
+}
+
+/* Form Styling */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+input, select {
+    width: 90%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Buttons */
+button {
+    width: 95%;
     background-color: #007bff;
     color: white;
     border: none;
@@ -39,36 +67,73 @@ body {
     border-radius: 5px;
     cursor: pointer;
     transition: 0.3s;
-    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
-.button:hover {
+button:hover {
     background-color: #0056b3;
+    transform: translateY(-2px);
 }
 
-/* Feature Buttons */
-.feature-button {
-    display: block;
-    width: 100%;
+/* Add Employee Button */
+.add-button {
     background-color: #28a745;
-    color: white;
-    border: none;
-    padding: 12px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.3s;
-    margin: 10px 0;
 }
 
-.feature-button:hover {
+.add-button:hover {
     background-color: #218838;
 }
 
-/* Footer Title */
-.footer-title {
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 20px;
-    color: #333;
+/* Edit & Delete Buttons */
+.edit-button {
+    background-color: #ffc107;
+}
+
+.edit-button:hover {
+    background-color: #e0a800;
+}
+
+.delete-button {
+    background-color: #dc3545;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
+}
+
+/* User List */
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    background: #ffffff;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    transition: 0.3s;
+}
+
+li:hover {
+    transform: scale(1.02);
+}
+
+/* Icons */
+i {
+    font-size: 18px;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .container {
+        width: 90%;
+    }
 }

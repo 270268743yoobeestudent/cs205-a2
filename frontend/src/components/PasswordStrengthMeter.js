@@ -1,5 +1,6 @@
 // frontend/src/components/PasswordStrengthMeter.js
 import React from 'react';
+import '../styles/styles.css';
 
 function PasswordStrengthMeter({ password }) {
   const calculateStrength = password => {

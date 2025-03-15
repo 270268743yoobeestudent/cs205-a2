@@ -1,6 +1,7 @@
 // frontend/src/components/PersonalProgress.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import '../styles/styles.css';
 
 function PersonalProgress() {
   const [modules, setModules] = useState([]);

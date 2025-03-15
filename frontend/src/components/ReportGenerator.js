@@ -1,6 +1,7 @@
 // frontend/src/components/ReportGenerator.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import '../styles/styles.css';
 
 function ReportGenerator() {
   const [employees, setEmployees] = useState([]);

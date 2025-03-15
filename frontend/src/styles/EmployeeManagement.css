@@ -1,0 +1,157 @@
+/* frontend/src/styles/styles.css */
+
+/* General page styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f7f9fc;
+    margin: 0;
+    padding: 0;
+  }
+  
+  h2, h3 {
+    color: #2a3d66;
+  }
+  
+  h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+  
+  h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+  
+  /* Container for the form and employee list */
+  div {
+    margin: 20px auto;
+    max-width: 800px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Form styles */
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  input[type="text"],
+  input[type="password"],
+  select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  input[type="text"]:focus,
+  input[type="password"]:focus,
+  select:focus {
+    border-color: #5f73b1;
+    outline: none;
+  }
+  
+  button {
+    padding: 10px 15px;
+    background-color: #5f73b1;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #3b4a75;
+  }
+  
+  button[type="button"] {
+    background-color: #f44336;
+  }
+  
+  button[type="button"]:hover {
+    background-color: #d32f2f;
+  }
+  
+  /* Message styles */
+  p {
+    color: green;
+    font-weight: bold;
+  }
+  
+  p.error {
+    color: red;
+    font-weight: bold;
+  }
+  
+  /* User list styles */
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  li strong {
+    font-size: 1.2rem;
+    color: #2a3d66;
+  }
+  
+  li button {
+    margin-left: 10px;
+  }
+  
+  li button:hover {
+    background-color: #3b4a75;
+  }
+  
+  /* Edit form inside list item */
+  form input[type="text"],
+  form select,
+  form input[type="password"] {
+    width: 100%;
+  }
+  
+  form button {
+    margin-top: 10px;
+  }
+  
+  form button[type="button"] {
+    margin-top: 10px;
+    background-color: #f44336;
+  }
+  
+  form button[type="button"]:hover {
+    background-color: #d32f2f;
+  }
+  
+  /* Media Query for responsiveness */
+  @media (max-width: 600px) {
+    div {
+      margin: 10px;
+      padding: 15px;
+    }
+  
+    input[type="text"],
+    input[type="password"],
+    select,
+    button {
+      font-size: 0.9rem;
+    }
+  
+    button {
+      width: 100%;
+    }
+  }
+  

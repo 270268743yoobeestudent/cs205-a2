@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import PasswordStrengthMeter from './PasswordStrengthMeter';
 import '../styles/Login.css';
+import '../styles/styles.css';
 
 function Login({ onLogin }) {
   const navigate = useNavigate();

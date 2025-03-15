@@ -6,6 +6,7 @@ import TrainingModuleViewer from './TrainingModuleViewer';
 import EmployeeQuizList from './EmployeeQuizList';
 import EmployeeQuizAttempt from './EmployeeQuizAttempt';
 import PersonalProgress from './PersonalProgress';
+import '../styles/styles.css';
 
 function EmployeeDashboard() {
   const navigate = useNavigate();
