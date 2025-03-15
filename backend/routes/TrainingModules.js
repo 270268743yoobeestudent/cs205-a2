@@ -1,19 +1,34 @@
-const express = require('express');
-const trainingModuleController = require('../controllers/TrainingModuleController'); // Importing the controller
-const { isAuthenticated, isAdmin } = require('../middleware/AuthMiddleware'); // Importing authentication and admin middleware
+import React, { useEffect, useState } from 'react';
 
-const router = express.Router();
+const TrainingModulesPage = () => {
+    const [trainingModules, setTrainingModules] = useState(null); // Initialize as null
 
-// Admin Routes
-// Route to create a new training module (admin-only access)
-router.post('/admin/modules', isAuthenticated, isAdmin, trainingModuleController.createModule);
-// Route to get all training modules (admin-only access)
-router.get('/admin/modules', isAuthenticated, isAdmin, trainingModuleController.getAllModules);
-// Route to delete a specific training module (admin-only access)
-router.delete('/admin/modules/:id', isAuthenticated, isAdmin, trainingModuleController.deleteModule);
+    useEffect(() => {
+        fetch('/modules') // Adjust this URL if needed
+            .then((response) => response.json())
+            .then((data) => {
+                console.log('Fetched training modules:', data);
+                setTrainingModules(data);
+            })
+            .catch((error) => console.error('Error fetching modules:', error));
+    }, []);
 
-// Employee Route
-// Route to get modules available for the employee
-router.get('/modules', isAuthenticated, trainingModuleController.getModulesForEmployee);
+    if (!trainingModules) {
+        return <p>Loading training modules...</p>; // Show loading state
+    }
 
-module.exports = router; // Exporting the router for use in the application
+    return (
+        <div>
+            <h2>Training Modules</h2>
+            {trainingModules.length > 0 ? (
+                trainingModules.map((module, index) => (
+                    <p key={index}>{module.title}</p>
+                ))
+            ) : (
+                <p>No training modules available.</p>
+            )}
+        </div>
+    );
+};
+
+export default TrainingModulesPage;
