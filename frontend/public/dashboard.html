@@ -1,0 +1,41 @@
+<link rel="stylesheet" href="css/styles.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="dashboard-container">
+        
+        <!-- Logout Button -->
+        <button class="button" onclick="logout()">🔴 Logout</button>
+
+        <!-- Feature Buttons -->
+        <div class="button-container">
+            <button class="feature-button" onclick="goTo('employees.html')">👨‍💼 Employee Management</button>
+            <button class="feature-button" onclick="goTo('modules.html')">📚 Module Management</button>
+            <button class="feature-button" onclick="goTo('quizzes.html')">📝 Quiz Management</button>
+            <button class="feature-button" onclick="goTo('reports.html')">📊 Report Generation</button>
+        </div>
+
+        <!-- Move Title to Bottom -->
+        <p class="footer-title">🚀 Admin Dashboard</p>
+    </div>
+
+    <script>
+        function logout() {
+            alert("Logged out successfully!");
+            window.location.href = "index.html"; // Redirect to login page
+        }
+
+        function goTo(page) {
+            window.location.href = page; // Redirect to feature pages
+        }
+    </script>
+
+</body>
+</html>

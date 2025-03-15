@@ -6,6 +6,8 @@ import EmployeeManagement from './EmployeeManagement';
 import ModuleManagement from './ModuleManagement';
 import QuizManagement from './QuizManagement';
 import ReportGenerator from './ReportGenerator';
+import '../styles/AdminDashboard.css';
+
 
 function AdminDashboard() {
   const navigate = useNavigate();
