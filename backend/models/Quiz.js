@@ -1,16 +1,17 @@
-// backend/models/Quiz.js
+// models/Quiz.js
 const mongoose = require('mongoose');
 
-const QuestionSchema = new mongoose.Schema({
+const questionSchema = new mongoose.Schema({
   text: { type: String, required: true },
-  options: [String],
+  options: [{ type: String, required: true }],
   correctAnswer: { type: String, required: true }
 });
 
-const QuizSchema = new mongoose.Schema({
+const quizSchema = new mongoose.Schema({
+  title: { type: String, required: true },
   moduleId: { type: mongoose.Schema.Types.ObjectId, ref: 'TrainingModule', required: true },
-  questions: [QuestionSchema],
+  questions: [questionSchema],
   passingScore: { type: Number, required: true }
 });
 
-module.exports = mongoose.model('Quiz', QuizSchema);
+module.exports = mongoose.model('Quiz', quizSchema);

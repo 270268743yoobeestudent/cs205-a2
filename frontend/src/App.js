@@ -1,6 +1,7 @@
 // frontend/src/App.js
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Welcome from './components/Welcome';
 import Login from './components/Login';
 import AdminDashboard from './components/AdminDashboard';
 import EmployeeDashboard from './components/EmployeeDashboard';
@@ -19,6 +20,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Welcome page as the default route */}
+        <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login onLogin={setUser} />} />
         {user && user.role === 'admin' && (
           <Route path="/admin/*" element={<AdminDashboard />} />
@@ -26,7 +29,8 @@ function App() {
         {user && user.role === 'employee' && (
           <Route path="/employee/*" element={<EmployeeDashboard />} />
         )}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        {/* Fallback route: if no match, navigate to the welcome page */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

@@ -67,15 +67,15 @@ exports.deleteEmployee = async (req, res) => {
   }
 };
 
-// Training Module CRUD (updated)
+// Training Module CRUD (updated for multiple sections)
 exports.createModule = async (req, res) => {
-  const { title, header, content } = req.body;
+  // Expect req.body to contain { title, sections }
+  // where sections is an array of objects { header, content }
+  const { title, sections } = req.body;
   try {
-    // Combine header and content into one field
-    const fullContent = header + "\n\n" + content;
     const newModule = new TrainingModule({
       title,
-      content: fullContent,
+      contentSections: sections,  // store the array of sections
       createdBy: req.session.userId
     });
     await newModule.save();
@@ -96,13 +96,12 @@ exports.getModules = async (req, res) => {
 
 exports.updateModule = async (req, res) => {
   const { id } = req.params;
-  const { title, header, content } = req.body;
+  // Expect req.body to contain { title, sections }
+  const { title, sections } = req.body;
   try {
-    // Combine header and content before updating
-    const fullContent = header + "\n\n" + content;
     const updatedModule = await TrainingModule.findByIdAndUpdate(
       id,
-      { title, content: fullContent },
+      { title, contentSections: sections },
       { new: true }
     );
     res.json({ message: 'Module updated', module: updatedModule });
@@ -122,10 +121,21 @@ exports.deleteModule = async (req, res) => {
 };
 
 // Quiz CRUD
-exports.createQuiz = async (req, res) => {
-  const { moduleId, questions, passingScore } = req.body;
+exports.getQuizzes = async (req, res) => {
   try {
-    const newQuiz = new Quiz({ moduleId, questions, passingScore });
+    // Populate moduleId so that the related module data (including title) is available.
+    const quizzes = await Quiz.find().populate('moduleId');
+    res.json(quizzes);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Create Quiz endpoint (includes title)
+exports.createQuiz = async (req, res) => {
+  const { title, moduleId, questions, passingScore } = req.body;
+  try {
+    const newQuiz = new Quiz({ title, moduleId, questions, passingScore });
     await newQuiz.save();
     res.status(201).json({ message: 'Quiz created', quiz: newQuiz });
   } catch (err) {
@@ -133,26 +143,23 @@ exports.createQuiz = async (req, res) => {
   }
 };
 
-exports.getQuizzes = async (req, res) => {
-  try {
-    const quizzes = await Quiz.find();
-    res.json(quizzes);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
+// Update Quiz endpoint (includes title)
 exports.updateQuiz = async (req, res) => {
   const { id } = req.params;
-  const { questions, passingScore } = req.body;
+  const { title, questions, passingScore } = req.body;
   try {
-    const updatedQuiz = await Quiz.findByIdAndUpdate(id, { questions, passingScore }, { new: true });
+    const updatedQuiz = await Quiz.findByIdAndUpdate(
+      id,
+      { title, questions, passingScore },
+      { new: true }
+    ).populate('moduleId'); // Optionally populate after update
     res.json({ message: 'Quiz updated', quiz: updatedQuiz });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// Delete Quiz endpoint remains unchanged
 exports.deleteQuiz = async (req, res) => {
   const { id } = req.params;
   try {
@@ -182,35 +189,75 @@ exports.generateReport = async (req, res) => {
     // Fetch all modules
     const modules = await TrainingModule.find();
     
-    // Fetch progress for this employee (if any) and populate moduleId
-    const progressRecords = await UserProgress.find({ userId: employeeId }).populate('moduleId');
+    // Fetch all progress records for this employee and populate related fields
+    const progressRecords = await UserProgress.find({ user: employeeId })
+      .populate('completedModules')
+      .populate({
+        path: 'quizScores.quiz',
+        populate: { path: 'moduleId' }
+      });
     
-    // Build CSV header
-    let csv = 'Employee,Module,Completed,Quiz Results\n';
-    
-    // For every module in the system, check if the employee has progress data
-    modules.forEach(module => {
-      // Check if progress exists and that moduleId is not null
-      const progress = progressRecords.find(
-        p => p.moduleId && String(p.moduleId._id) === String(module._id)
-      );
-      const completed = progress ? (progress.completionStatus ? 'Yes' : 'No') : 'No';
-      const quizResults =
-        progress && progress.quizResults && progress.quizResults.length > 0
-          ? progress.quizResults
-              .map(q => `Score: ${q.score} (${q.passed ? 'Passed' : 'Failed'})`)
-              .join('; ')
-          : 'Not attempted';
-      
-      csv += `"${employee.username}","${module.title}","${completed}","${quizResults}"\n`;
+    // Combine progress records into one combined object
+    const combinedProgress = {
+      completedModules: [],
+      quizScores: []
+    };
+    progressRecords.forEach(record => {
+      if (record.completedModules && record.completedModules.length > 0) {
+        record.completedModules.forEach(mod => {
+          if (!combinedProgress.completedModules.some(cm => String(cm._id) === String(mod._id))) {
+            combinedProgress.completedModules.push(mod);
+          }
+        });
+      }
+      if (record.quizScores && record.quizScores.length > 0) {
+        combinedProgress.quizScores = combinedProgress.quizScores.concat(record.quizScores);
+      }
     });
     
-    // Prepend UTF-8 BOM for compatibility with Excel
+    // Build CSV header
+    let csv = 'Employee,Module,Completed,Quiz Score,Pass/Fail\n';
+    
+    modules.forEach(module => {
+      // Determine completion status
+      const completed = (combinedProgress.completedModules &&
+        combinedProgress.completedModules.some(m => String(m._id) === String(module._id)))
+        ? "Yes" : "No";
+      
+      // Filter quizScores for entries where the quiz's moduleId matches the current module
+      let moduleQuizScores = [];
+      if (combinedProgress.quizScores && combinedProgress.quizScores.length > 0) {
+        moduleQuizScores = combinedProgress.quizScores.filter(qs => {
+          if (qs.quiz && qs.quiz.moduleId) {
+            // qs.quiz.moduleId may be populated or just an ID
+            const modId = qs.quiz.moduleId._id ? qs.quiz.moduleId._id : qs.quiz.moduleId;
+            return String(modId) === String(module._id);
+          }
+          return false;
+        });
+      }
+      
+      // If there are quiz attempts, choose the highest score; otherwise, show defaults.
+      let quizScore = "Not attempted";
+      let passFail = "N/A";
+      if (moduleQuizScores.length > 0) {
+        const highestEntry = moduleQuizScores.reduce((prev, curr) => 
+          curr.score > prev.score ? curr : prev, moduleQuizScores[0]
+        );
+        quizScore = highestEntry.score;
+        const passing = highestEntry.quiz && highestEntry.quiz.passingScore ? highestEntry.quiz.passingScore : 0;
+        passFail = highestEntry.score >= passing ? "Passed" : "Failed";
+      }
+      
+      csv += `"${employee.username}","${module.title}","${completed}","${quizScore}","${passFail}"\n`;
+    });
+    
+    // Prepend UTF-8 BOM so Excel recognizes it as CSV
     const csvWithBOM = "\uFEFF" + csv;
     const filename = `${employee.username} Report.csv`;
     const csvBuffer = Buffer.from(csvWithBOM, 'utf-8');
     
-    // Set headers to force download as CSV
+    // Set headers to force download as CSV (using RFC 5987 encoding)
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`);
     res.setHeader('Content-Length', csvBuffer.length);

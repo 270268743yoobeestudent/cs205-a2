@@ -22,16 +22,28 @@ exports.getAvailableModules = async (req, res) => {
   }
 };
 
-exports.getQuiz = async (req, res) => {
-    try {
-      // For demonstration, get the first quiz available.
-      const quiz = await Quiz.findOne();
-      if (!quiz) return res.status(404).json({ message: "No quiz found" });
-      res.json(quiz);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  };
+// Get all quizzes for employees
+exports.getAllQuizzes = async (req, res) => {
+  try {
+    // Populate moduleId so that the module title is available
+    const quizzes = await Quiz.find().populate('moduleId');
+    res.json(quizzes);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get a quiz by its ID for attempting
+exports.getQuizById = async (req, res) => {
+  try {
+    const { quizId } = req.params;
+    const quiz = await Quiz.findById(quizId).populate('moduleId');
+    if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+    res.json(quiz);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 // Submit quiz answers
 exports.submitQuiz = async (req, res) => {
@@ -40,46 +52,84 @@ exports.submitQuiz = async (req, res) => {
     const quiz = await Quiz.findById(quizId);
     let score = 0;
     quiz.questions.forEach((question, index) => {
-      if (question.correctAnswer === answers[index]) score++;
+      const correct = question.correctAnswer.trim().toLowerCase();
+      const given = (answers[index] || "").trim().toLowerCase();
+      if (correct === given) score++;
     });
     const passed = score >= quiz.passingScore;
-    let progress = await UserProgress.findOne({ userId: req.session.userId, moduleId: quiz.moduleId });
+    
+    // Find or create a progress record for the current user for this quiz’s module
+    let progress = await UserProgress.findOne({ user: req.session.userId, moduleId: quiz.moduleId });
     if (!progress) {
-      progress = new UserProgress({ userId: req.session.userId, moduleId: quiz.moduleId, quizResults: [] });
+      progress = new UserProgress({ user: req.session.userId, moduleId: quiz.moduleId, quizScores: [] });
     }
-    progress.quizResults.push({ quizId, score, passed });
+    progress.quizScores.push({ quiz: quizId, score });
     await progress.save();
+    
     res.json({ message: 'Quiz submitted', score, passed });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// backend/controllers/employeeController.js
+// Get personal progress (existing endpoint)
 exports.getPersonalProgress = async (req, res) => {
-    try {
-      const progress = await UserProgress.find({ userId: req.session.userId })
-        .populate('moduleId');
-      res.json(progress);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  };
-  
+  try {
+    console.log('Fetching personal progress for user:', req.session.userId);
+    const progress = await UserProgress.find({ user: req.session.userId })
+      .populate('completedModules')
+      .populate({
+        path: 'quizScores.quiz',
+        populate: { path: 'moduleId' }
+      });
+    console.log('Found progress:', progress);
+    res.json(progress);
+  } catch (err) {
+    console.error('Error in getPersonalProgress:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
 
 // Mark module as completed
 exports.markModuleCompleted = async (req, res) => {
-  const { moduleId } = req.body;
   try {
-    let progress = await UserProgress.findOne({ userId: req.session.userId, moduleId });
-    if (!progress) {
-      progress = new UserProgress({ userId: req.session.userId, moduleId, completionStatus: true });
-    } else {
-      progress.completionStatus = true;
+    console.log('markModuleCompleted request body:', req.body);
+    console.log('Session userId:', req.session.userId);
+    
+    const { moduleId } = req.body;
+    if (!moduleId) {
+      console.error("Module ID not provided in request body.");
+      return res.status(400).json({ message: 'Module ID is required' });
     }
+    
+    if (!req.session.userId) {
+      console.error("No user session found.");
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
+    let progress = await UserProgress.findOne({ user: req.session.userId });
+    
+    if (!progress) {
+      progress = new UserProgress({
+        user: req.session.userId,
+        completedModules: [moduleId]
+      });
+      console.log('Created new progress record with completedModules:', progress.completedModules);
+    } else {
+      if (!progress.completedModules.some(id => String(id) === String(moduleId))) {
+        progress.completedModules.push(moduleId);
+        console.log('Added moduleId to existing progress record:', moduleId);
+      } else {
+        console.log('Module already marked as completed.');
+      }
+      progress.lastUpdated = Date.now();
+    }
+    
     await progress.save();
+    console.log('Progress record saved:', progress);
     res.json({ message: 'Module marked as completed' });
   } catch (err) {
+    console.error('Error in markModuleCompleted:', err);
     res.status(500).json({ error: err.message });
   }
 };

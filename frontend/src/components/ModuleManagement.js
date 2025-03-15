@@ -3,34 +3,50 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 function ModuleManagement() {
+  // For new module creation
+  const [newModuleTitle, setNewModuleTitle] = useState('');
+  const [newSections, setNewSections] = useState([]); // array of { header, content }
+  const [newSectionHeader, setNewSectionHeader] = useState('');
+  const [newSectionContent, setNewSectionContent] = useState('');
+
+  // For editing an existing module
+  const [editingModuleId, setEditingModuleId] = useState(null);
+  const [editModuleTitle, setEditModuleTitle] = useState('');
+  const [editSections, setEditSections] = useState([]); // current sections array for module
+  const [editSectionHeader, setEditSectionHeader] = useState('');
+  const [editSectionContent, setEditSectionContent] = useState('');
+
+  // For storing the list of modules and any messages
   const [modules, setModules] = useState([]);
-  // newModule now has title, header, and content
-  const [newModule, setNewModule] = useState({ title: '', header: '', content: '' });
-  const [editingModule, setEditingModule] = useState(null);
-  // editForm now has title, header, and content
-  const [editForm, setEditForm] = useState({ title: '', header: '', content: '' });
   const [message, setMessage] = useState('');
 
-  // Fetch modules on component mount
   useEffect(() => {
     fetchModules();
   }, []);
 
+  // Fetch all modules from the backend
   const fetchModules = async () => {
     try {
-      const res = await axios.get('/api/admin/modules');
+      const res = await axios.get('/api/admin/modules', { withCredentials: true });
       setModules(res.data);
     } catch (err) {
       console.error(err);
+      setMessage('Error fetching modules');
     }
   };
 
+  // CREATE NEW MODULE
   const handleCreateModule = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/admin/modules', newModule);
-      setNewModule({ title: '', header: '', content: '' });
+      // Prepare payload with title and sections (even if sections is empty)
+      const payload = { title: newModuleTitle, sections: newSections };
+      await axios.post('/api/admin/modules', payload, { withCredentials: true });
       setMessage('Module created successfully!');
+      setNewModuleTitle('');
+      setNewSections([]);
+      setNewSectionHeader('');
+      setNewSectionContent('');
       fetchModules();
     } catch (err) {
       console.error(err);
@@ -38,20 +54,31 @@ function ModuleManagement() {
     }
   };
 
-  const handleEditClick = (module) => {
-    setEditingModule(module._id);
-    // Assume the stored content is header and body separated by two newlines.
-    const [header, ...rest] = module.content.split("\n\n");
-    const body = rest.join("\n\n");
-    setEditForm({ title: module.title, header: header || '', content: body || '' });
+  // Add a new section to the new module
+  const addNewSection = () => {
+    if (newSectionHeader.trim() && newSectionContent.trim()) {
+      setNewSections([...newSections, { header: newSectionHeader, content: newSectionContent }]);
+      setNewSectionHeader('');
+      setNewSectionContent('');
+    }
   };
 
+  // EDIT MODULE: start editing, pre-fill the edit state with module data
+  const handleEditClick = (module) => {
+    setEditingModuleId(module._id);
+    setEditModuleTitle(module.title);
+    setEditSections(module.contentSections || []);
+    setMessage('');
+  };
+
+  // Update an existing module
   const handleUpdateModule = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`/api/admin/modules/${editingModule}`, editForm);
+      const payload = { title: editModuleTitle, sections: editSections };
+      await axios.put(`/api/admin/modules/${editingModuleId}`, payload, { withCredentials: true });
       setMessage('Module updated successfully!');
-      setEditingModule(null);
+      setEditingModuleId(null);
       fetchModules();
     } catch (err) {
       console.error(err);
@@ -59,9 +86,10 @@ function ModuleManagement() {
     }
   };
 
+  // Delete a module
   const handleDeleteModule = async (id) => {
     try {
-      await axios.delete(`/api/admin/modules/${id}`);
+      await axios.delete(`/api/admin/modules/${id}`, { withCredentials: true });
       setMessage('Module deleted successfully!');
       fetchModules();
     } catch (err) {
@@ -70,67 +98,135 @@ function ModuleManagement() {
     }
   };
 
+  // In edit mode, delete a specific section
+  const deleteEditSection = (index) => {
+    const updatedSections = editSections.filter((_, i) => i !== index);
+    setEditSections(updatedSections);
+  };
+
+  // In edit mode, add a new section
+  const addEditSection = () => {
+    if (editSectionHeader.trim() && editSectionContent.trim()) {
+      setEditSections([...editSections, { header: editSectionHeader, content: editSectionContent }]);
+      setEditSectionHeader('');
+      setEditSectionContent('');
+    }
+  };
+
   return (
     <div>
-      <h3>Create New Module</h3>
+      <h3>Module Management</h3>
       {message && <p>{message}</p>}
-      <form onSubmit={handleCreateModule}>
-        <input
-          type="text"
-          placeholder="Title"
-          value={newModule.title}
-          onChange={(e) => setNewModule({ ...newModule, title: e.target.value })}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Main Header"
-          value={newModule.header}
-          onChange={(e) => setNewModule({ ...newModule, header: e.target.value })}
-          required
-        />
-        <textarea
-          placeholder="Content Information"
-          value={newModule.content}
-          onChange={(e) => setNewModule({ ...newModule, content: e.target.value })}
-          required
-        />
-        <button type="submit">Create Module</button>
-      </form>
 
-      <h3>Existing Modules</h3>
-      <ul>
-        {modules.map((module) => (
-          <li key={module._id}>
-            {editingModule === module._id ? (
-              <form onSubmit={handleUpdateModule}>
-                <input
-                  type="text"
-                  value={editForm.title}
-                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                  required
-                />
-                <input
-                  type="text"
-                  value={editForm.header}
-                  onChange={(e) => setEditForm({ ...editForm, header: e.target.value })}
-                  required
-                />
-                <textarea
-                  value={editForm.content}
-                  onChange={(e) => setEditForm({ ...editForm, content: e.target.value })}
-                  required
-                />
-                <button type="submit">Save</button>
-                <button type="button" onClick={() => setEditingModule(null)}>Cancel</button>
-              </form>
+      {/* Create New Module Section */}
+      <div style={{ marginBottom: '20px', border: '1px solid #ccc', padding: '10px' }}>
+        <h4>Create New Module</h4>
+        <form onSubmit={handleCreateModule}>
+          <input
+            type="text"
+            placeholder="Module Title"
+            value={newModuleTitle}
+            onChange={(e) => setNewModuleTitle(e.target.value)}
+            required
+          />
+          <div style={{ marginTop: '10px' }}>
+            <h5>Add Section</h5>
+            <input
+              type="text"
+              placeholder="Section Header"
+              value={newSectionHeader}
+              onChange={(e) => setNewSectionHeader(e.target.value)}
+            />
+            <textarea
+              placeholder="Section Content"
+              value={newSectionContent}
+              onChange={(e) => setNewSectionContent(e.target.value)}
+            />
+            <button type="button" onClick={addNewSection} style={{ marginTop: '5px' }}>
+              Add Section
+            </button>
+          </div>
+          {newSections.length > 0 && (
+            <div style={{ marginTop: '10px' }}>
+              <h5>Sections Added:</h5>
+              <ul>
+                {newSections.map((sec, idx) => (
+                  <li key={idx}><strong>{sec.header}</strong>: {sec.content}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <button type="submit" style={{ marginTop: '10px' }}>Create Module</button>
+        </form>
+      </div>
+
+      {/* Minimal List of Existing Modules */}
+      <ul style={{ listStyle: 'none', padding: 0 }}>
+        {modules.map(module => (
+          <li
+            key={module._id}
+            style={{
+              marginBottom: '8px',
+              borderBottom: '1px solid #ccc',
+              paddingBottom: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            {editingModuleId === module._id ? (
+              // Editing Mode: show inline form for module title and sections editing
+              <div style={{ width: '100%' }}>
+                <form onSubmit={handleUpdateModule}>
+                  <input
+                    type="text"
+                    value={editModuleTitle}
+                    onChange={(e) => setEditModuleTitle(e.target.value)}
+                    required
+                  />
+                  <div style={{ marginTop: '10px' }}>
+                    <h5>Edit Sections</h5>
+                    {editSections.map((sec, idx) => (
+                      <div key={idx} style={{ border: '1px solid #aaa', padding: '5px', marginBottom: '5px' }}>
+                        <strong>{sec.header}</strong>: {sec.content}
+                        <button type="button" onClick={() => deleteEditSection(idx)} style={{ marginLeft: '5px' }}>
+                          Delete Section
+                        </button>
+                      </div>
+                    ))}
+                    <div style={{ marginTop: '10px' }}>
+                      <input
+                        type="text"
+                        placeholder="New Section Header"
+                        value={editSectionHeader}
+                        onChange={(e) => setEditSectionHeader(e.target.value)}
+                      />
+                      <textarea
+                        placeholder="New Section Content"
+                        value={editSectionContent}
+                        onChange={(e) => setEditSectionContent(e.target.value)}
+                      />
+                      <button type="button" onClick={addEditSection} style={{ marginTop: '5px' }}>
+                        Add New Section
+                      </button>
+                    </div>
+                  </div>
+                  <button type="submit" style={{ marginTop: '10px' }}>Save</button>
+                  <button type="button" onClick={() => setEditingModuleId(null)} style={{ marginLeft: '5px' }}>
+                    Cancel
+                  </button>
+                </form>
+              </div>
             ) : (
-              <div>
-                <h4>{module.title}</h4>
-                <h5>{module.content.split("\n\n")[0]}</h5>
-                <p>{module.content.split("\n\n").slice(1).join("\n\n")}</p>
-                <button onClick={() => handleEditClick(module)}>Edit</button>
-                <button onClick={() => handleDeleteModule(module._id)}>Delete</button>
+              // Minimal view: show only the title and Edit/Delete buttons
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <span>{module.title}</span>
+                <span>
+                  <button onClick={() => handleEditClick(module)}>Edit</button>
+                  <button onClick={() => handleDeleteModule(module._id)} style={{ marginLeft: '5px' }}>
+                    Delete
+                  </button>
+                </span>
               </div>
             )}
           </li>

@@ -1,9 +1,12 @@
 // backend/server.js
+require('dotenv').config(); // load environment variables from .env
+
 const express = require('express');
 const session = require('express-session');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const MongoStore = require('connect-mongo');
+const cors = require('cors');
 
 const authRoutes = require('./routes/Auth');
 const adminRoutes = require('./routes/admin');
@@ -11,13 +14,16 @@ const employeeRoutes = require('./routes/employee');
 
 const app = express();
 
-// Connect to MongoDB
-mongoose.connect('mongodb+srv://anthony:admin@cs205-a2.lqx6x.mongodb.net/', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error(err));
+// Connect to MongoDB using the connection string from .env
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error(err));
+
+// Enable CORS with credentials
+app.use(cors({
+  origin: process.env.FRONTEND_ORIGIN,
+  credentials: true
+}));
 
 // Middleware
 app.use(bodyParser.json());
@@ -25,10 +31,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Setup session (using a MongoDB store)
 app.use(session({
-  secret: 'yourSecretKey',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: 'mongodb+srv://anthony:admin@cs205-a2.lqx6x.mongodb.net/' }),
+  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: { maxAge: 1000 * 60 * 30 } // 30 minutes session timeout
 }));
 

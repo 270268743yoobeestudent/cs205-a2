@@ -3,7 +3,8 @@ import React from 'react';
 import { Link, Routes, Route, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import TrainingModuleViewer from './TrainingModuleViewer';
-import InteractiveQuiz from './InteractiveQuiz';
+import EmployeeQuizList from './EmployeeQuizList';
+import EmployeeQuizAttempt from './EmployeeQuizAttempt';
 import PersonalProgress from './PersonalProgress';
 
 function EmployeeDashboard() {
@@ -11,12 +12,10 @@ function EmployeeDashboard() {
 
   const handleLogout = async () => {
     try {
-      // Optionally, call the backend logout endpoint to destroy the session
-      await axios.post('/api/auth/logout');
+      await axios.post('/api/auth/logout', {}, { withCredentials: true });
     } catch (err) {
       console.error('Logout error:', err);
     }
-    // Clear the local storage and navigate to login
     localStorage.removeItem('user');
     navigate('/login');
   };
@@ -31,7 +30,7 @@ function EmployeeDashboard() {
             <Link to="/employee/modules">Training Modules</Link>
           </li>
           <li>
-            <Link to="/employee/quiz">Take Quiz</Link>
+            <Link to="/employee/quiz">Quizzes</Link>
           </li>
           <li>
             <Link to="/employee/progress">My Progress</Link>
@@ -40,7 +39,8 @@ function EmployeeDashboard() {
       </nav>
       <Routes>
         <Route path="modules" element={<TrainingModuleViewer />} />
-        <Route path="quiz" element={<InteractiveQuiz />} />
+        <Route path="quiz" element={<EmployeeQuizList />} />
+        <Route path="quiz/:quizId" element={<EmployeeQuizAttempt />} />
         <Route path="progress" element={<PersonalProgress />} />
         <Route path="/" element={<h3>Welcome to Employee Dashboard</h3>} />
       </Routes>
