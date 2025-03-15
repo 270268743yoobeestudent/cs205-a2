@@ -1,122 +1,81 @@
-require("dotenv").config(); // Load environment variables at the very beginning
+require('dotenv').config(); // Load environment variables from .env file
+const express = require('express');
+const mongoose = require('mongoose');
+const session = require('express-session');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const path = require('path');
 
-const express = require("express");
-const mongoose = require("mongoose");
-const cookieParser = require("cookie-parser"); // For parsing cookies
-const cors = require("cors"); // To handle cross-origin requests
-const session = require("express-session"); // For session handling
-const MongoStore = require("connect-mongo"); // For storing sessions in MongoDB
-const errorHandler = require("./middleware/ErrorHandler"); // Centralized error handler
-const rateLimiter = require("./middleware/RateLimiter"); // Rate limiting middleware
-const requestLogger = require("./middleware/RequestLogger"); // Request logging middleware
-
-const AuthRoutes = require("./routes/AuthRoutes"); // Authentication routes
-const UserRoutes = require("./routes/UserRoutes"); // User-specific routes
-const AdminRoutes = require("./routes/AdminRoutes"); // Admin-specific routes
-const QuizRoutes = require("./routes/QuizRoutes"); // Quiz-related routes
-const TrainingModuleRoutes = require("./routes/TrainingModuleRoutes"); // Training module routes
-
+// Initialize the app
 const app = express();
 
 // Middleware
-app.use(express.json()); // Parse JSON requests
-app.use(cookieParser()); // Parse cookies
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Add the RequestLogger middleware AFTER JSON and cookie parsers
-app.use(requestLogger);
-
-// Configure CORS Middleware with Debugging
-app.use(
-  (req, res, next) => {
-    console.log("CORS Debug: Origin:", req.headers.origin);
-    next();
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'default-secret',
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000,
   },
-  cors({
-    origin: "http://localhost:3000", // Allow requests only from the local frontend
-    credentials: true, // Allow cookies in CORS requests
-  })
-);
+}));
 
-// Apply Rate Limiting Middleware
-app.use(rateLimiter);
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
-// Configure Session Middleware with Debugging
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "your-session-secret", // Replace with a secure key
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI, // Store sessions in MongoDB
-      collectionName: "sessions", // Name for the sessions collection
-    }),
-    cookie: {
-      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-      httpOnly: true, // Prevent client-side JavaScript access
-      maxAge: 1000 * 60 * 60 * 24, // 1 day expiry
-    },
-  })
-);
+// Import models and controllers
+const UserController = require('./controllers/UserController');
+const TrainingModuleController = require('./controllers/TrainingModuleController');
+const QuizController = require('./controllers/QuizController');
+const ReportController = require('./controllers/ReportController');
+const AuthMiddleware = require('./middleware/AuthMiddleware');
+const ValidateMiddleware = require('./middleware/ValidateMiddleware');
 
-// Debug Session Middleware
+// Routes for user authentication and profile management
+app.post('/register', UserController.registerUser);
+app.post('/login', UserController.loginUser);
+app.post('/logout', AuthMiddleware.isAuthenticated, UserController.logoutUser);
+
+// Routes for training modules
+app.post('/modules', AuthMiddleware.isAdmin, ValidateMiddleware.validateTrainingModule, TrainingModuleController.createTrainingModule);
+app.get('/modules', TrainingModuleController.getAllModules);
+app.get('/modules/:id', TrainingModuleController.getTrainingModule);
+app.put('/modules/:id', AuthMiddleware.isAdmin, ValidateMiddleware.validateTrainingModule, TrainingModuleController.updateTrainingModule);
+app.delete('/modules/:id', AuthMiddleware.isAdmin, TrainingModuleController.deleteModule);
+
+// Routes for quizzes
+app.post('/quizzes', AuthMiddleware.isAdmin, QuizController.createQuiz);
+app.get('/quizzes', QuizController.getAllQuizzes);
+app.get('/quizzes/:id', QuizController.getQuizById);
+app.put('/quizzes/:id', AuthMiddleware.isAdmin, QuizController.updateQuiz);
+app.delete('/quizzes/:id', AuthMiddleware.isAdmin, QuizController.deleteQuiz);
+
+// Routes for user progress and reporting
+app.get('/reports/progress', AuthMiddleware.isAdmin, ReportController.getAllProgress);
+app.get('/reports/progress/:userId', AuthMiddleware.isAdmin, ReportController.getUserProgress);
+app.get('/reports/export', AuthMiddleware.isAdmin, ReportController.exportReport);
+
+// Default route for all other endpoints
+app.get('/', (req, res) => {
+  res.send('Welcome to the CS205-A2 Training Platform');
+});
+
+// Handle 404 for undefined routes
 app.use((req, res, next) => {
-  console.log("Session Debug - ID:", req.sessionID);
-  console.log("Session Debug - Data:", req.session);
-  next();
+  res.status(404).json({ message: 'Route not found' });
 });
 
-// MongoDB Connection
-mongoose
-  .connect(process.env.MONGO_URI) // Removed deprecated options
-  .then(() => {
-    console.log(`MongoDB connected successfully`);
-  })
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
-  });
-
-// Routes
-
-// Welcome Route for Root URL (http://localhost:5000/)
-app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Welcome to the Backend API!",
-  });
-});
-
-// Health Check Endpoint
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Server is healthy",
-  });
-});
-
-// API Routes
-app.use("/api/auth", AuthRoutes); // Authentication endpoints
-app.use("/api/users", UserRoutes); // User-specific endpoints
-app.use("/api/admin", AdminRoutes); // Admin-specific endpoints
-app.use("/api/quizzes", QuizRoutes); // Quiz-related endpoints
-app.use("/api/modules", TrainingModuleRoutes); // Training module endpoints
-
-// Fallback Route for Undefined Endpoints
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Endpoint not found",
-  });
-});
-
-// Centralized Error Handler (should always come last)
-app.use(errorHandler);
-
-// Graceful Shutdown
-process.on("SIGINT", async () => {
-  console.log("Graceful shutdown initiated...");
-  await mongoose.connection.close();
-  console.log("MongoDB connection closed.");
-  process.exit(0);
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
 });
 
 // Start the server

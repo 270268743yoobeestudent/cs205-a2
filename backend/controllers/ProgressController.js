@@ -1,69 +1,88 @@
-// controllers/progressController.js
-const User = require("../models/User");
-const Module = require("../models/Module"); // Assuming the module model exists
-const Quiz = require("../models/Quiz"); // Assuming the quiz model exists
+// controllers/ProgressController.js
 
-// Get user progress (completed modules, quiz scores)
-const getUserProgress = async (req, res) => {
+const Progress = require('../models/Progress'); // Import Progress model
+const User = require('../models/User'); // Import User model
+const TrainingModule = require('../models/TrainingModule'); // Import TrainingModule model
+const Quiz = require('../models/Quiz'); // Import Quiz model
+
+// Track and update progress
+exports.trackProgress = async (req, res) => {
   try {
-    const userId = req.user.id; // Assuming you're using session-based authentication to get the user ID
+    const userId = req.session.user._id; // Get user ID from session
+    let progress = await Progress.findOne({ user: userId }); // Find the progress record for the user
 
-    // Find the user
-    const user = await User.findById(userId).populate("completedModules").populate("quizScores.quizId");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found.",
-      });
+    // If no progress data exists, create a new progress entry
+    if (!progress) {
+      progress = new Progress({ user: userId });
+      await progress.save(); // Save the new progress record
     }
 
-    // Prepare the progress data
-    const progress = {
-      completedModules: user.completedModules,
-      quizScores: user.quizScores,
-    };
+    // Populate completed modules and quiz scores
+    await progress.populate('completedModules').populate('quizScores.quiz');
 
-    return res.status(200).json({
-      success: true,
-      message: "User progress retrieved successfully.",
-      data: progress,
-    });
+    // Return the user's progress data
+    res.status(200).json(progress);
   } catch (error) {
-    console.error("Error retrieving user progress:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error while retrieving user progress.",
-    });
+    res.status(500).json({ message: 'Failed to retrieve progress', error }); // Error handling
   }
 };
 
-// Get all users' progress (for admins)
-const getAllUsersProgress = async (req, res) => {
+// Update progress (when a module is completed or quiz is taken)
+exports.updateProgress = async (req, res) => {
   try {
-    // Ensure the user is an admin
-    if (req.user.role !== "admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied. Admins only.",
-      });
+    const { moduleId, quizId, score } = req.body; // Get data from request body
+    const userId = req.session.user._id; // Get user ID from session
+
+    // Ensure the moduleId or quizId is provided and valid
+    if (!moduleId && !quizId) {
+      return res.status(400).json({ message: 'Module ID or Quiz ID must be provided.' }); // Error if neither is provided
     }
 
-    // Get all users and populate relevant fields
-    const users = await User.find().populate("completedModules").populate("quizScores.quizId");
+    // Find or create a progress record for the user
+    let progress = await Progress.findOne({ user: userId });
+    if (!progress) {
+      progress = new Progress({ user: userId });
+    }
 
-    return res.status(200).json({
-      success: true,
-      message: "All users' progress retrieved successfully.",
-      data: users,
-    });
+    let updated = false; // Flag to track whether progress was updated
+
+    // Update completed modules if the module is completed
+    if (moduleId && !progress.completedModules.includes(moduleId)) {
+      const moduleExists = await TrainingModule.findById(moduleId); // Check if the module exists
+      if (!moduleExists) {
+        return res.status(404).json({ message: 'Training Module not found.' }); // Error if module doesn't exist
+      }
+      progress.completedModules.push(moduleId); // Add module to completedModules
+      updated = true; // Flag that the progress was updated
+    }
+
+    // Update quiz scores if a quiz score is provided
+    if (quizId && score !== undefined) {
+      const quizExists = await Quiz.findById(quizId); // Check if the quiz exists
+      if (!quizExists) {
+        return res.status(404).json({ message: 'Quiz not found.' }); // Error if quiz doesn't exist
+      }
+
+      const existingQuizScore = progress.quizScores.find(
+        (quizScore) => quizScore.quiz.toString() === quizId
+      ); // Check if the quiz score already exists for this quiz
+
+      if (existingQuizScore) {
+        existingQuizScore.score = score; // Update the existing score
+      } else {
+        progress.quizScores.push({ quiz: quizId, score }); // Add new quiz score
+      }
+      updated = true; // Flag that the progress was updated
+    }
+
+    // Only update lastUpdated field if progress was changed
+    if (updated) {
+      progress.lastUpdated = Date.now(); // Set lastUpdated to the current time
+      await progress.save(); // Save the updated progress record
+    }
+
+    res.status(200).json({ message: 'Progress updated successfully', progress }); // Return the updated progress
   } catch (error) {
-    console.error("Error retrieving all users' progress:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error while retrieving all users' progress.",
-    });
+    res.status(500).json({ message: 'Failed to update progress', error }); // Error handling
   }
 };
-
-module.exports = { getUserProgress, getAllUsersProgress };

@@ -1,100 +1,88 @@
-const TrainingModule = require('../models/TrainingModule');
+const TrainingModule = require('../models/TrainingModule'); // Import the TrainingModule model
 
-const addTrainingModule = async (moduleData) => {
+// Create a new training module
+const createTrainingModule = async (req, res) => {
   try {
-    // Validate that content is properly structured as an array
-    if (!Array.isArray(moduleData.content) || moduleData.content.length === 0) {
-      throw new Error('Content must be an array with at least one block');
-    }
+    const { title, description, content, quiz } = req.body;
 
-    // Validate that each content block has a heading and body
-    for (const block of moduleData.content) {
-      if (!block.heading || !block.body) {
-        throw new Error('Each content block must contain both heading and body');
-      }
-    }
+    const newModule = new TrainingModule({
+      title,
+      description,
+      content,
+      quiz,
+    });
 
-    // Create a new training module with the validated data
-    const newModule = new TrainingModule(moduleData);
     await newModule.save();
-    return newModule;
+    res.status(201).json({ message: 'Training module created successfully', module: newModule });
   } catch (error) {
-    console.error("Error saving training module:", error);
-    throw new Error('Error saving training module');
+    res.status(500).json({ message: 'Failed to create module', error });
   }
 };
 
-// Edit a training module
-const editTrainingModule = async (id, moduleData) => {
-  try {
-    const updatedModule = await TrainingModule.findByIdAndUpdate(id, moduleData, { new: true });
-    return updatedModule;
-  } catch (error) {
-    console.error("Error updating training module:", error);
-    throw new Error('Error updating training module');
-  }
-};
-
-// Delete a training module
-const deleteTrainingModule = async (id) => {
-  try {
-    const deletedModule = await TrainingModule.findByIdAndDelete(id);
-    return deletedModule;
-  } catch (error) {
-    console.error("Error deleting training module:", error);
-    throw new Error('Error deleting training module');
-  }
-};
-
-// Get all training modules
-const getAllTrainingModules = async () => {
+// Get all training modules for admins
+const getAllModules = async (req, res) => {
   try {
     const modules = await TrainingModule.find();
-    return modules;
+    res.status(200).json(modules);
   } catch (error) {
-    console.error("Error fetching training modules:", error);
-    throw new Error('Error fetching training modules');
+    res.status(500).json({ message: 'Failed to retrieve modules', error });
   }
 };
 
-// Get a training module by ID
-const getTrainingModuleById = async (id) => {
+// Get a single training module by ID
+const getTrainingModule = async (req, res) => {
   try {
+    const { id } = req.params;
     const module = await TrainingModule.findById(id);
-    return module;
+    if (!module) {
+      return res.status(404).json({ message: 'Module not found' });
+    }
+    res.status(200).json(module);
   } catch (error) {
-    console.error("Error fetching training module by ID:", error);
-    throw new Error('Error fetching module by ID');
+    res.status(500).json({ message: 'Failed to retrieve module', error });
   }
 };
 
-// Mark a module as completed (for user)
-const markModuleAsCompleted = async (userId, moduleId) => {
-  // Assume you have a user schema with a `completedModules` field
+// Update a training module by ID
+const updateTrainingModule = async (req, res) => {
   try {
-    const user = await User.findById(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
+    const { id } = req.params;
+    const { title, description, content, quiz } = req.body;
 
-    // Add the module ID to the completedModules array if not already added
-    if (!user.completedModules.includes(moduleId)) {
-      user.completedModules.push(moduleId);
-      await user.save();
-    }
+    const updatedModule = await TrainingModule.findByIdAndUpdate(
+      id,
+      { title, description, content, quiz },
+      { new: true }
+    );
 
-    return { success: true };
+    if (!updatedModule) {
+      return res.status(404).json({ message: 'Module not found' });
+    }
+    res.status(200).json({ message: 'Module updated successfully', module: updatedModule });
   } catch (error) {
-    console.error("Error marking module as completed:", error);
-    throw new Error('Error marking module as completed');
+    res.status(500).json({ message: 'Failed to update module', error });
   }
 };
 
+// Delete a training module (admin only)
+const deleteModule = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const module = await TrainingModule.findByIdAndDelete(id);
+    if (!module) {
+      return res.status(404).json({ message: 'Module not found' });
+    }
+    res.status(200).json({ message: 'Module deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete module', error });
+  }
+};
+
+// Export the functions correctly
 module.exports = {
-  addTrainingModule,
-  editTrainingModule,
-  deleteTrainingModule,
-  getAllTrainingModules,
-  getTrainingModuleById,
-  markModuleAsCompleted,
+  createTrainingModule,
+  getAllModules,
+  getTrainingModule,
+  updateTrainingModule,
+  deleteModule,
 };

@@ -1,73 +1,31 @@
-/**
- * Middleware to check if the user is authenticated
- */
-const isAuthenticated = (req, res, next) => {
-  try {
-    // Check if the user session exists
-    if (!req.session || !req.session.user) {
-      console.warn("Authentication failed: No active session.");
-      return res.status(401).json({ message: "Unauthorized. Please log in." });
-    }
+const session = require('express-session');
 
-    // Attach the user session to the request object for easy access
-    req.user = req.session.user;
+// Session middleware for handling authentication
+module.exports.setupSession = (app) => {
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'default-secret', // Use environment variable for session secret
+    resave: false,  // Don't resave session if not modified
+    saveUninitialized: true, // Store session even if not modified
+    cookie: {
+      httpOnly: true, // Helps prevent XSS attacks
+      secure: process.env.NODE_ENV === 'production', // Set to true if using HTTPS in production
+      maxAge: 24 * 60 * 60 * 1000, // Session expiration: 24 hours
+    },
+  }));
+};
 
-    console.log("Authenticated user:", req.user.username); // Debugging: Log authenticated user details
-
-    next(); // Proceed to the next middleware or route handler
-  } catch (err) {
-    console.error("Authentication error:", err.message);
-    res.status(500).json({ message: "Internal Server Error" });
+// Middleware to check if the user is authenticated
+module.exports.isAuthenticated = (req, res, next) => {
+  if (!req.session.user) {
+    return res.status(403).send('User is not authenticated. Please log in.');
   }
+  next(); // Proceed to next middleware or route handler
 };
 
-/**
- * Middleware for admin-only access
- */
-const isAdmin = (req, res, next) => {
-  try {
-    // Check if the user is authenticated and has the "admin" role
-    if (!req.session || !req.session.user || req.session.user.role !== "admin") {
-      console.warn("Authorization failed: Admin access required.");
-      return res.status(403).json({ message: "Forbidden: Admin access required." });
-    }
-
-    console.log("Admin access granted to user:", req.session.user.username); // Log successful admin access
-
-    next(); // Proceed to the next middleware or route handler
-  } catch (err) {
-    console.error("Authorization error:", err.message);
-    res.status(500).json({ message: "Internal Server Error" });
+// Middleware to check if the user is an admin
+module.exports.isAdmin = (req, res, next) => {
+  if (req.session.user && req.session.user.role === 'admin') {
+    return next(); // Proceed if the user is an admin
   }
-};
-
-/**
- * General role-check middleware (supports multiple roles)
- * @param {...string} roles - Allowed roles
- */
-const hasRole = (...roles) => {
-  return (req, res, next) => {
-    try {
-      // Check if the user is authenticated and their role matches the allowed roles
-      if (!req.session || !req.session.user || !roles.includes(req.session.user.role)) {
-        console.warn(`Authorization failed: Requires one of the roles: ${roles.join(", ")}.`);
-        return res.status(403).json({
-          message: `Forbidden: Requires one of the roles: ${roles.join(", ")}.`,
-        });
-      }
-
-      console.log(`Access granted to user: ${req.session.user.username} with role: ${req.session.user.role}`); // Log role-based access
-
-      next(); // Proceed to the next middleware or route handler
-    } catch (err) {
-      console.error("Authorization error:", err.message);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  };
-};
-
-module.exports = {
-  isAuthenticated,
-  isAdmin,
-  hasRole,
+  return res.status(403).send('Access denied. Admin privileges required.');
 };
