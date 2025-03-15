@@ -1,41 +1,23 @@
-// models/User.js
+// backend/models/User.js
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
-// Define schema for users
-const userSchema = new mongoose.Schema({
-  username: { 
-    type: String, 
-    required: true, 
-    unique: true 
-  }, // Username is required and should be unique for each user
-  password: { 
-    type: String, 
-    required: true 
-  }, // Password is required
-  role: { 
-    type: String, 
-    enum: ['admin', 'employee'], 
-    default: 'employee' 
-  }, // Role of the user (either 'admin' or 'employee'). Default is 'employee'
-  completedModules: [{ 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'TrainingModule' 
-  }], // Array of modules the user has completed. Each entry is a reference to the TrainingModule model
-  quizScores: [
-    {
-      quiz: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Quiz' 
-      }, // Reference to the quiz
-      score: { 
-        type: Number, 
-        required: true 
-      }, // The score the user achieved in the quiz
-    }
-  ],
+const UserSchema = new mongoose.Schema({
+  role: { type: String, enum: ['admin', 'employee'], required: true },
+  username: { type: String, required: true, unique: true }, // using username for login
+  password: { type: String, required: true }
 });
 
-// Create the User model from the schema
-const User = mongoose.model('User', userSchema);
+// Password hashing middleware
+UserSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
 
-module.exports = User;
+// Compare password method
+UserSchema.methods.comparePassword = function(candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
+module.exports = mongoose.model('User', UserSchema);
