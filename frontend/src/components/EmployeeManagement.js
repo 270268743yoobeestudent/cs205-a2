@@ -6,7 +6,8 @@ function EmployeeManagement() {
   const [employees, setEmployees] = useState([]);
   const [newEmployee, setNewEmployee] = useState({ username: '', password: '', role: 'employee' });
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [editForm, setEditForm] = useState({ username: '', role: '' });
+  // Add a password field in the edit form. This field is optional; if left blank, the password remains unchanged.
+  const [editForm, setEditForm] = useState({ username: '', role: '', password: '' });
   const [message, setMessage] = useState('');
 
   // Fetch all users on mount
@@ -38,7 +39,8 @@ function EmployeeManagement() {
 
   const handleEditClick = (employee) => {
     setEditingEmployee(employee._id);
-    setEditForm({ username: employee.username, role: employee.role });
+    // Pre-fill username and role; leave password empty so admin may input a new one if desired.
+    setEditForm({ username: employee.username, role: employee.role, password: '' });
   };
 
   const handleUpdateEmployee = async (e) => {
@@ -115,6 +117,12 @@ function EmployeeManagement() {
                   <option value="employee">Employee</option>
                   <option value="admin">Admin</option>
                 </select>
+                <input
+                  type="password"
+                  placeholder="New Password (leave blank if unchanged)"
+                  value={editForm.password}
+                  onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                />
                 <button type="submit">Save</button>
                 <button type="button" onClick={() => setEditingEmployee(null)}>Cancel</button>
               </form>

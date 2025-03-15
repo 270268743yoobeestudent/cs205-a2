@@ -4,9 +4,11 @@ import axios from 'axios';
 
 function ModuleManagement() {
   const [modules, setModules] = useState([]);
-  const [newModule, setNewModule] = useState({ title: '', content: '', duration: '' });
+  // newModule now has title, header, and content
+  const [newModule, setNewModule] = useState({ title: '', header: '', content: '' });
   const [editingModule, setEditingModule] = useState(null);
-  const [editForm, setEditForm] = useState({ title: '', content: '', duration: '' });
+  // editForm now has title, header, and content
+  const [editForm, setEditForm] = useState({ title: '', header: '', content: '' });
   const [message, setMessage] = useState('');
 
   // Fetch modules on component mount
@@ -14,7 +16,6 @@ function ModuleManagement() {
     fetchModules();
   }, []);
 
-  // Retrieve modules from backend
   const fetchModules = async () => {
     try {
       const res = await axios.get('/api/admin/modules');
@@ -24,12 +25,11 @@ function ModuleManagement() {
     }
   };
 
-  // Create a new module
   const handleCreateModule = async (e) => {
     e.preventDefault();
     try {
       await axios.post('/api/admin/modules', newModule);
-      setNewModule({ title: '', content: '', duration: '' });
+      setNewModule({ title: '', header: '', content: '' });
       setMessage('Module created successfully!');
       fetchModules();
     } catch (err) {
@@ -38,13 +38,14 @@ function ModuleManagement() {
     }
   };
 
-  // Start editing a module
   const handleEditClick = (module) => {
     setEditingModule(module._id);
-    setEditForm({ title: module.title, content: module.content, duration: module.duration });
+    // Assume the stored content is header and body separated by two newlines.
+    const [header, ...rest] = module.content.split("\n\n");
+    const body = rest.join("\n\n");
+    setEditForm({ title: module.title, header: header || '', content: body || '' });
   };
 
-  // Update an existing module
   const handleUpdateModule = async (e) => {
     e.preventDefault();
     try {
@@ -58,7 +59,6 @@ function ModuleManagement() {
     }
   };
 
-  // Delete a module
   const handleDeleteModule = async (id) => {
     try {
       await axios.delete(`/api/admin/modules/${id}`);
@@ -82,17 +82,17 @@ function ModuleManagement() {
           onChange={(e) => setNewModule({ ...newModule, title: e.target.value })}
           required
         />
-        <textarea
-          placeholder="Content"
-          value={newModule.content}
-          onChange={(e) => setNewModule({ ...newModule, content: e.target.value })}
+        <input
+          type="text"
+          placeholder="Main Header"
+          value={newModule.header}
+          onChange={(e) => setNewModule({ ...newModule, header: e.target.value })}
           required
         />
-        <input
-          type="number"
-          placeholder="Duration (minutes)"
-          value={newModule.duration}
-          onChange={(e) => setNewModule({ ...newModule, duration: e.target.value })}
+        <textarea
+          placeholder="Content Information"
+          value={newModule.content}
+          onChange={(e) => setNewModule({ ...newModule, content: e.target.value })}
           required
         />
         <button type="submit">Create Module</button>
@@ -110,27 +110,25 @@ function ModuleManagement() {
                   onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                   required
                 />
+                <input
+                  type="text"
+                  value={editForm.header}
+                  onChange={(e) => setEditForm({ ...editForm, header: e.target.value })}
+                  required
+                />
                 <textarea
                   value={editForm.content}
                   onChange={(e) => setEditForm({ ...editForm, content: e.target.value })}
                   required
                 />
-                <input
-                  type="number"
-                  value={editForm.duration}
-                  onChange={(e) => setEditForm({ ...editForm, duration: e.target.value })}
-                  required
-                />
                 <button type="submit">Save</button>
-                <button type="button" onClick={() => setEditingModule(null)}>
-                  Cancel
-                </button>
+                <button type="button" onClick={() => setEditingModule(null)}>Cancel</button>
               </form>
             ) : (
               <div>
                 <h4>{module.title}</h4>
-                <p>{module.content}</p>
-                <p>Duration: {module.duration} minutes</p>
+                <h5>{module.content.split("\n\n")[0]}</h5>
+                <p>{module.content.split("\n\n").slice(1).join("\n\n")}</p>
                 <button onClick={() => handleEditClick(module)}>Edit</button>
                 <button onClick={() => handleDeleteModule(module._id)}>Delete</button>
               </div>

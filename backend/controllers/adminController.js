@@ -37,9 +37,15 @@ exports.getEmployees = async (req, res) => {
 
 exports.updateEmployee = async (req, res) => {
   const { id } = req.params;
-  const { username, role } = req.body;
+  const { username, role, password } = req.body;
   try {
-    const employee = await User.findByIdAndUpdate(id, { username, role }, { new: true });
+    let updateData = { username, role };
+    if (password && password.trim() !== '') {
+      const bcrypt = require('bcrypt');
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData.password = hashedPassword;
+    }
+    const employee = await User.findByIdAndUpdate(id, updateData, { new: true });
     res.json({ message: 'Employee updated', employee });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -48,6 +54,11 @@ exports.updateEmployee = async (req, res) => {
 
 exports.deleteEmployee = async (req, res) => {
   const { id } = req.params;
+  // Prevent admin from deleting their own account
+  if (req.session.userId === id) {
+    return res.status(400).json({ message: "You cannot delete your own account." });
+  }
+  
   try {
     await User.findByIdAndDelete(id);
     res.json({ message: 'Employee deleted' });
@@ -56,14 +67,15 @@ exports.deleteEmployee = async (req, res) => {
   }
 };
 
-// Training Module CRUD
+// Training Module CRUD (updated)
 exports.createModule = async (req, res) => {
-  const { title, content, duration } = req.body;
+  const { title, header, content } = req.body;
   try {
+    // Combine header and content into one field
+    const fullContent = header + "\n\n" + content;
     const newModule = new TrainingModule({
       title,
-      content,
-      duration,
+      content: fullContent,
       createdBy: req.session.userId
     });
     await newModule.save();
@@ -84,11 +96,13 @@ exports.getModules = async (req, res) => {
 
 exports.updateModule = async (req, res) => {
   const { id } = req.params;
-  const { title, content, duration } = req.body;
+  const { title, header, content } = req.body;
   try {
+    // Combine header and content before updating
+    const fullContent = header + "\n\n" + content;
     const updatedModule = await TrainingModule.findByIdAndUpdate(
       id,
-      { title, content, duration },
+      { title, content: fullContent },
       { new: true }
     );
     res.json({ message: 'Module updated', module: updatedModule });
@@ -151,60 +165,62 @@ exports.deleteQuiz = async (req, res) => {
 
 // Report Generation
 exports.generateReport = async (req, res) => {
-    try {
-      const { employeeId } = req.query;
-      if (!employeeId) {
-        console.error("No employeeId provided in query");
-        return res.status(400).json({ message: 'Employee ID is required' });
-      }
-      
-      // Find the employee
-      const employee = await User.findById(employeeId);
-      if (!employee) {
-        console.error(`Employee not found for id: ${employeeId}`);
-        return res.status(404).json({ message: 'Employee not found' });
-      }
-      
-      // Fetch all modules
-      const modules = await TrainingModule.find();
-      
-      // Fetch progress for this employee (if any) and populate moduleId
-      const progressRecords = await UserProgress.find({ userId: employeeId }).populate('moduleId');
-      
-      // Build CSV header
-      let csv = 'Employee,Module,Completed,Quiz Results\n';
-      
-      // For every module in the system, check if the employee has progress data
-      modules.forEach(module => {
-        // Check if progress exists and that moduleId is not null
-        const progress = progressRecords.find(
-          p => p.moduleId && String(p.moduleId._id) === String(module._id)
-        );
-        const completed = progress ? (progress.completionStatus ? 'Yes' : 'No') : 'No';
-        const quizResults =
-          progress && progress.quizResults && progress.quizResults.length > 0
-            ? progress.quizResults
-                .map(q => `Score: ${q.score} (${q.passed ? 'Passed' : 'Failed'})`)
-                .join('; ')
-            : 'Not attempted';
-        
-        csv += `"${employee.username}","${module.title}","${completed}","${quizResults}"\n`;
-      });
-      
-      // Prepend UTF-8 BOM so Excel and some browsers treat it as CSV
-      const csvWithBOM = "\uFEFF" + csv;
-      
-      // Set the filename as "EmployeeName Report.csv"
-      const filename = `${employee.username} Report.csv`;
-      res.setHeader('Content-Type', 'application/csv; charset=utf-8');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      return res.send(csvWithBOM);
-    } catch (err) {
-      console.error('Error in generateReport:', err);
-      res.status(500).json({ error: err.message });
+  try {
+    const { employeeId } = req.query;
+    if (!employeeId) {
+      console.error("No employeeId provided in query");
+      return res.status(400).json({ message: 'Employee ID is required' });
     }
-  };
-  
+    
+    // Find the employee
+    const employee = await User.findById(employeeId);
+    if (!employee) {
+      console.error(`Employee not found for id: ${employeeId}`);
+      return res.status(404).json({ message: 'Employee not found' });
+    }
+    
+    // Fetch all modules
+    const modules = await TrainingModule.find();
+    
+    // Fetch progress for this employee (if any) and populate moduleId
+    const progressRecords = await UserProgress.find({ userId: employeeId }).populate('moduleId');
+    
+    // Build CSV header
+    let csv = 'Employee,Module,Completed,Quiz Results\n';
+    
+    // For every module in the system, check if the employee has progress data
+    modules.forEach(module => {
+      // Check if progress exists and that moduleId is not null
+      const progress = progressRecords.find(
+        p => p.moduleId && String(p.moduleId._id) === String(module._id)
+      );
+      const completed = progress ? (progress.completionStatus ? 'Yes' : 'No') : 'No';
+      const quizResults =
+        progress && progress.quizResults && progress.quizResults.length > 0
+          ? progress.quizResults
+              .map(q => `Score: ${q.score} (${q.passed ? 'Passed' : 'Failed'})`)
+              .join('; ')
+          : 'Not attempted';
+      
+      csv += `"${employee.username}","${module.title}","${completed}","${quizResults}"\n`;
+    });
+    
+    // Prepend UTF-8 BOM for compatibility with Excel
+    const csvWithBOM = "\uFEFF" + csv;
+    const filename = `${employee.username} Report.csv`;
+    const csvBuffer = Buffer.from(csvWithBOM, 'utf-8');
+    
+    // Set headers to force download as CSV
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`);
+    res.setHeader('Content-Length', csvBuffer.length);
+    
+    return res.end(csvBuffer);
+  } catch (err) {
+    console.error('Error in generateReport:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
 
 // Get all user progress
 exports.getAllProgress = async (req, res) => {
