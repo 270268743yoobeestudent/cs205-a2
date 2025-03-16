@@ -1,163 +1,216 @@
-/* General page styling */
+/* General Page Styling */
 body {
-  font-family: 'Arial', sans-serif;
-  background-color: #f7f9fc;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center; /* Centering vertically */
-  min-height: 100vh;
-  flex-direction: column; /* Align elements in a column */
-}
-
-/* Admin Dashboard Container */
-.dashboard-container {
-  display: flex;
-  width: 100%;
-  max-width: 1200px;
-  margin-top: 20px;
-  justify-content: center; /* Center the content horizontally */
-}
-
-/* Sidebar Styles */
-.sidebar {
-  width: 250px;
-  background-color: #5f73b1;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  border-radius: 0 10px 10px 0;
-  height: calc(100vh - 40px); /* Ensure sidebar covers full height */
-  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
-}
-
-/* Sidebar Text Styles */
-.sidebar h1 {
-  font-size: 1.5rem;
-  margin-bottom: 30px;
-}
-
-/* Sidebar Links */
-.sidebar a {
-  font-size: 1.1rem;
-  color: #fff;
-  text-decoration: none;
-  padding: 12px 20px;
-  margin: 10px 0;
-  display: flex;
-  align-items: center;
-  border-radius: 8px;
-  width: 100%;
-  transition: background-color 0.3s ease;
-}
-
-.sidebar a:hover {
-  background-color: #3b4a75;
-}
-
-.sidebar a i {
-  margin-right: 12px;
-  font-size: 1.3rem;
-}
-
-/* Logout button styles */
-.logout-button {
-  background-color: #007bff;
-  padding: 12px 30px;
-  color: white;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: auto; /* Position logout button at the bottom */
-}
-
-.logout-button:hover {
-  background-color: #0056b3;
-}
-
-/* Main content area */
-.main-content {
-  flex: 1;
-  padding: 30px;
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-left: 20px;
-  max-width: 1000px; /* Limit max width */
-  width: 100%; /* Take up full available space */
-}
-
-.main-content h2 {
-  font-size: 2rem;
-  margin-bottom: 20px;
-}
-
-.main-content p {
-  font-size: 1.2rem;
-  color: #333;
-}
-
-.main-content button {
-  padding: 12px 20px;
-  background-color: #5f73b1;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  width: 100%;
-  margin-top: 20px;
-  transition: background-color 0.3s ease;
-}
-
-.main-content button:hover {
-  background-color: #3b4a75;
-}
-
-/* Footer styles */
-footer {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-  font-size: 1rem;
-  margin-top: 20px;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 200px;
+    font-family: 'Arial', sans-serif;
+    background-color: #f7f9fc;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    flex-direction: column;
   }
-
-  .main-content {
-    margin-left: 220px;
-    width: calc(100% - 220px);
-  }
-}
-
-@media (max-width: 600px) {
-  .sidebar {
+  
+  /* Admin Dashboard Container */
+  .dashboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
-    padding: 10px;
-  }
-
-  .main-content {
-    margin-left: 0;
-    width: 100%;
-  }
-
-  .logout-button {
-    width: 100%;
+    max-width: 1200px;
     margin-top: 20px;
   }
-
-  .sidebar a {
-    font-size: 1rem;
-    padding: 10px 15px;
+  
+  /* Sidebar Styles */
+  .sidebar {
+    width: 250px;
+    background-color: #5f73b1;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    border-radius: 0 10px 10px 0;
+    height: calc(100vh - 40px);
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
   }
-}
+  
+  /* Sidebar Text Styles */
+  .sidebar h1 {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+  }
+  
+  /* Sidebar Links */
+  .sidebar a {
+    font-size: 1.1rem;
+    color: #fff;
+    text-decoration: none;
+    padding: 12px 20px;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+    width: 100%;
+    transition: background-color 0.3s ease;
+  }
+  
+  .sidebar a:hover {
+    background-color: #3b4a75;
+  }
+  
+  /* Logout Button */
+  .logout-button {
+    background-color: #007bff;
+    padding: 12px 30px;
+    color: white;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: auto;
+    display: inline-block;
+  }
+  
+  .logout-button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Main Content Area */
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    max-width: 1000px;
+    width: 100%;
+  }
+  
+  /* Heading */
+  .main-content h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+  
+  /* Navigation Menu */
+  nav {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  nav ul {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  nav ul li {
+    margin: 10px 0;
+    width: 100%;
+    text-align: center;
+  }
+  
+  /* Style Nav Links as Buttons */
+  nav ul li a {
+    display: block;
+    padding: 12px 20px;
+    background-color: #5f73b1;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    transition: background-color 0.3s ease;
+    width: 250px; /* Ensure all buttons have the same size */
+  }
+  
+  nav ul li a:hover {
+    background-color: #3b4a75;
+  }
+  
+  /* Standard Button Styling */
+  button {
+    display: inline-block;
+    background-color: #5f73b1;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+    width: 250px;
+  }
+  
+  button:hover {
+    background-color: #3b4a75;
+  }
+  
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-size: 1rem;
+    margin-top: 20px;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 200px;
+    }
+  
+    .main-content {
+      width: 100%;
+      align-items: center;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .dashboard-container {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .sidebar {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+    }
+  
+    .main-content {
+      margin-left: 0;
+      width: 100%;
+      align-items: center;
+    }
+  
+    .logout-button {
+      width: 100%;
+      margin-top: 20px;
+    }
+  
+    nav ul {
+      width: 100%;
+    }
+  
+    nav ul li a {
+      width: 90%;
+    }
+  
+    button {
+      width: 90%;
+    }
+  }
+  

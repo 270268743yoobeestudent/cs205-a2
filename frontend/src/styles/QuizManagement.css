@@ -1,19 +1,18 @@
-/* General page styling */
+/* General Page Styling */
 body {
     font-family: 'Arial', sans-serif;
     background-color: #f7f9fc;
     margin: 0;
     padding: 0;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 20px;
-  }
-  
-  /* Header and Navigation */
-  nav {
+    flex-direction: column;
+}
+
+/* Header and Navigation */
+nav {
     width: 100%;
     background-color: #5f73b1;
     color: white;
@@ -22,66 +21,69 @@ body {
     font-size: 1.2rem;
     border-radius: 8px;
     margin-bottom: 20px;
-  }
-  
-  nav a {
+}
+
+nav a {
     color: white;
     text-decoration: none;
     margin: 0 15px;
-  }
-  
-  nav a:hover {
+}
+
+nav a:hover {
     text-decoration: underline;
-  }
-  
-  /* Quiz Management Form Container */
-  .quiz-form-container {
+}
+
+/* Quiz Management Form Container */
+.quiz-form-container {
     background-color: white;
-    padding: 20px;
+    padding: 25px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 900px;
+    width: 90%;
+    max-width: 800px; /* Prevents form from stretching too wide */
     display: flex;
     flex-direction: column;
     gap: 15px;
-  }
-  
-  /* Form Title */
-  .quiz-form-container h2 {
-    font-size: 2rem;
+    margin-bottom: 30px;
+}
+
+/* Form Title */
+.quiz-form-container h2 {
+    font-size: 1.8rem;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     text-align: center;
-  }
-  
-  /* Form Label */
-  label {
-    font-size: 1.1rem;
+}
+
+/* Form Label */
+label {
+    font-size: 1rem;
     color: #333;
-    margin-bottom: 8px;
-  }
-  
-  /* Form Input Fields */
-  input[type="text"], input[type="number"], select {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* Form Input Fields */
+input[type="text"], input[type="number"], select {
     width: 100%;
     padding: 12px;
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 1rem;
-    margin-bottom: 15px;
     background-color: #fafafa;
     box-sizing: border-box;
-  }
-  
-  input[type="text"]:focus, input[type="number"]:focus, select:focus {
+    margin-bottom: 15px;
+}
+
+input[type="text"]:focus, input[type="number"]:focus, select:focus {
     border-color: #5f73b1;
     outline: none;
     background-color: #fff;
-  }
-  
-  /* Textarea for Question Text */
-  textarea {
+}
+
+/* Textarea for Question Text */
+textarea {
     width: 100%;
     padding: 12px;
     border: 1px solid #ccc;
@@ -89,18 +91,18 @@ body {
     font-size: 1rem;
     background-color: #fafafa;
     box-sizing: border-box;
-    margin-bottom: 15px;
     resize: vertical;
-  }
-  
-  textarea:focus {
+    margin-bottom: 15px;
+}
+
+textarea:focus {
     border-color: #5f73b1;
     outline: none;
     background-color: #fff;
-  }
-  
-  /* Buttons and Add Question */
-  button, .add-question-button {
+}
+
+/* Buttons */
+button {
     background-color: #5f73b1;
     color: white;
     border: none;
@@ -109,47 +111,70 @@ body {
     font-size: 1.1rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    width: 100%;
-    margin-top: 15px;
-  }
-  
-  button:hover, .add-question-button:hover {
+    width: auto;
+    min-width: 150px;
+    text-align: center;
+    margin: 10px auto; /* Centers button */
+    display: block;
+}
+
+button:hover {
     background-color: #3b4a75;
-  }
-  
-  /* Add Question Button */
-  .add-question-button {
+}
+
+/* Add Question Button */
+.add-question-button {
     background-color: #28a745;
     width: auto;
-    align-self: flex-start;
-  }
-  
-  .add-question-button:hover {
+    align-self: center;
+    padding: 12px 20px;
+    font-size: 1rem;
+}
+
+.add-question-button:hover {
     background-color: #218838;
-  }
-  
-  /* Footer */
-  footer {
+}
+
+/* Footer */
+footer {
     text-align: center;
     padding: 10px;
     color: #666;
     font-size: 1rem;
     margin-top: 20px;
-  }
-  
-  /* Responsive Design */
-  @media (max-width: 768px) {
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
     .quiz-form-container {
-      width: 100%;
-      padding: 15px;
+        width: 95%;
+        padding: 20px;
     }
-  
+
     input[type="text"], input[type="number"], select, textarea {
-      font-size: 1rem;
+        font-size: 1rem;
+        padding: 10px;
     }
-  
-    button, .add-question-button {
-      padding: 12px 15px;
+
+    button {
+        font-size: 1rem;
+        padding: 10px;
     }
-  }
-  
+}
+
+@media (max-width: 480px) {
+    .quiz-form-container {
+        width: 100%;
+        padding: 15px;
+    }
+
+    input[type="text"], input[type="number"], select, textarea {
+        font-size: 0.9rem;
+        padding: 10px;
+    }
+
+    button {
+        font-size: 1rem;
+        padding: 10px;
+    }
+}
