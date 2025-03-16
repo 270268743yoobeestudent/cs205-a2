@@ -1,7 +1,7 @@
 // frontend/src/components/QuizManagement.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../styles/styles.css';
+import '../styles/QuizManagement.css';
 
 function QuizManagement() {
   const [quizzes, setQuizzes] = useState([]);
