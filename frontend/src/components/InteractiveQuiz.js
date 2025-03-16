@@ -1,7 +1,7 @@
 // frontend/src/components/InteractiveQuiz.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../styles/styles.css';
+import '../styles/Login.css';
 
 function InteractiveQuiz() {
   const [quiz, setQuiz] = useState(null);

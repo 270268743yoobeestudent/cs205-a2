@@ -1,90 +1,94 @@
-/* Login.css */
-
-/* Page Background */
-body {
-    font-family: 'Poppins', Arial, sans-serif;
-    background-color: #e3f2fd; /* Light blue background */
+/* Reset default margins and paddings */
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+}
+
+/* Ensure full height */
+html, body {
+    height: 100vh;
+    width: 100vw;
+    font-family: 'Arial', sans-serif;
+    background-color: #f7f9fc;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh; /* Full screen height */
+    justify-content: center; /* Centers horizontally */
+    align-items: center; /* Centers vertically */
 }
 
-/* Centered Login Container */
+/* Centering the login container */
 .login-container {
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    width: 350px;
+    background-color: #ffffff;
     text-align: center;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 100%;
 }
-
-/* Login Title */
-h2 {
+    
+/* Title styles */
+h1 {
     color: #333;
+    font-size: 2rem;
     margin-bottom: 20px;
 }
 
-/* Input Fields */
-.input-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
+/* Input field styles */
 input {
-    width: 80%;
-    padding: 10px;
-    margin-top: 5px;
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
     border: 1px solid #ccc;
     border-radius: 5px;
-    font-size: 16px;
+    font-size: 1rem;
 }
 
-/* Password Strength Indicator */
-.password-strength {
-    font-size: 14px;
-    margin-top: 5px;
-}
-
-.weak {
-    color: red;
-}
-
-.medium {
-    color: orange;
-}
-
-.strong {
-    color: green;
-}
-
-/* Login Button */
+/* Center the login button */
 button {
-    width: 85%;
-    padding: 12px;
+    display: block;
+    margin: 20px auto; /* Ensures it's centered horizontally */
+    padding: 12px 25px;
     background-color: #007bff;
-    color: white;
+    color: #fff;
     border: none;
     border-radius: 5px;
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 1.1rem;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: background-color 0.3s ease;
 }
 
+/* Button hover effect */
 button:hover {
     background-color: #0056b3;
-    transform: scale(1.05);
 }
 
-/* Responsive Design */
-@media (max-width: 480px) {
-    .login-container {
-        width: 90%;
+/* Link styles */
+a {
+    display: block;
+    margin-top: 15px;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    input {
+        font-size: 1rem;
+        padding: 10px;
+    }
+
+    button {
+        font-size: 1rem;
+        padding: 10px 20px;
     }
 }

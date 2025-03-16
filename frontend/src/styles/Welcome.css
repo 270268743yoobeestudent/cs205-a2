@@ -23,12 +23,12 @@ html, body {
     padding: 40px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
     max-width: 600px;
+    width: 100%;
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* Perfect centering */
+    transform: translate(-50%, -50%);
 }
 
 /* Title styles */
@@ -45,10 +45,12 @@ p {
     margin-bottom: 30px;
 }
 
-/* Button styles */
+/* Center the button */
 button {
+    display: block; /* Makes the button take full width of its container */
+    margin: 20px auto; /* Ensures it's centered horizontally */
     padding: 12px 25px;
-    background-color: #5f73b1;
+    background-color: #007bff;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -59,7 +61,7 @@ button {
 
 /* Button hover effect */
 button:hover {
-    background-color: #3b4a75;
+    background-color: #0056b3;
 }
 
 /* Mobile responsiveness */

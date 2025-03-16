@@ -6,8 +6,9 @@ body {
     padding: 0;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center; /* Centering vertically */
     min-height: 100vh;
+    flex-direction: column; /* Align elements in a column */
   }
   
   /* Admin Dashboard Container */
@@ -16,6 +17,7 @@ body {
     width: 100%;
     max-width: 1200px;
     margin-top: 20px;
+    justify-content: center; /* Center the content horizontally */
   }
   
   /* Sidebar Styles */
@@ -28,14 +30,17 @@ body {
     align-items: center;
     padding: 20px;
     border-radius: 0 10px 10px 0;
-    height: calc(100vh - 20px);
+    height: calc(100vh - 40px); /* Ensure sidebar covers full height */
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
   }
   
+  /* Sidebar Text Styles */
   .sidebar h1 {
     font-size: 1.5rem;
     margin-bottom: 30px;
   }
   
+  /* Sidebar Links */
   .sidebar a {
     font-size: 1.1rem;
     color: #fff;
@@ -68,6 +73,7 @@ body {
     border: none;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    margin-top: auto; /* Position logout button at the bottom */
   }
   
   .logout-button:hover {
@@ -81,6 +87,9 @@ body {
     background-color: #fff;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-left: 20px;
+    max-width: 1000px; /* Limit max width */
+    width: 100%; /* Take up full available space */
   }
   
   .main-content h2 {
@@ -116,6 +125,7 @@ body {
     padding: 20px;
     color: #666;
     font-size: 1rem;
+    margin-top: 20px;
   }
   
   /* Responsive design */
