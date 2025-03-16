@@ -7,7 +7,6 @@ import ModuleManagement from './ModuleManagement';
 import QuizManagement from './QuizManagement';
 import ReportGenerator from './ReportGenerator';
 import '../styles/AdminDashboard.css';
-import '../styles/styles.css';
 
 
 function AdminDashboard() {

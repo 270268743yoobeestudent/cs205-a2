@@ -1,7 +1,7 @@
 // frontend/src/components/Welcome.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/styles.css';
+import '../styles/Welcome.css';
 
 function Welcome() {
   const navigate = useNavigate();

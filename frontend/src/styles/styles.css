@@ -9,7 +9,8 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: auto;
+    height: 100vh;  /* Full viewport height for centering */
+    width: 100vw;   /* Full viewport width */
 }
 
 /* Dashboard & Page Containers */
