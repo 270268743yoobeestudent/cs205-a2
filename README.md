@@ -232,8 +232,3 @@ cs205-a2/
 ## License
 
 This project is provided for educational purposes and can be modified or expanded as needed for your organization's training needs.
-```
-
----
-
-Simply save the above text as `README.md` in your repository. This README file uses GitHub Markdown formatting and should display nicely on GitHub. Let me know if you need any further modifications or additional sections!
