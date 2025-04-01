@@ -34,7 +34,7 @@ This application is a full-stack Cybersecurity Training Web Application built us
   - **Training Modules:** View available training modules, read detailed content sections, and mark modules as completed.
   - **Quizzes:** View available quizzes (displaying quiz title, associated module, and passing score) and attempt them.
   - **Personal Progress:** View overall progress, including completed modules and highest quiz scores.
-- **Welcome Page:** A polished landing page displayed before the login screen.
+- **Welcome Page:** A polished landing page is displayed before the login screen.
 - **Environment Configuration:** Sensitive configuration data (e.g., MongoDB URI, session secret) is stored in an `.env` file.
 
 ---
@@ -163,7 +163,9 @@ The React application will open in your browser at [http://localhost:3000](http:
   When you navigate to [http://localhost:3000](http://localhost:3000), you will see a welcome page with a "Continue to Login" button.
 - **Login:**  
   The default credentials for this application are:
+
   Username: admin
+
   Password: admin123
 
   After logging in with this default account, you can then create new users as you see fit.
@@ -176,7 +178,7 @@ The React application will open in your browser at [http://localhost:3000](http:
 - **Employee Dashboard:**
   - **Training Modules:** View modules, read content, and mark modules as completed.
   - **Quizzes:** View available quizzes and attempt them.
-  - **Personal Progress:** View overall progress including completed modules and quiz scores.
+  - **Personal Progress:** View overall progress, including completed modules and quiz scores.
 
 ---
 
