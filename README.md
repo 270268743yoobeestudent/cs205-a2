@@ -88,6 +88,7 @@ Open your terminal and run:
 git clone https://github.com/270268743yoobeestudent/cs205-a2.git
 cd cs205-a2
 ```
+Or download the ZIP folder from above
 
 ### b. Install Backend Dependencies
 
@@ -161,7 +162,12 @@ The React application will open in your browser at [http://localhost:3000](http:
 - **Welcome Page:**  
   When you navigate to [http://localhost:3000](http://localhost:3000), you will see a welcome page with a "Continue to Login" button.
 - **Login:**  
-  Enter your credentials. Based on your role (admin or employee), you will be directed to the corresponding dashboard.
+  The default credentials for this application are:
+  Username: admin
+  Password: admin123
+
+  After logging in with this default account, you can then create new users as you see fit.
+  
 - **Admin Dashboard:**
   - **Employee Management:** Manage employee accounts.
   - **Module Management:** Create, edit, and delete training modules with multiple content sections.
